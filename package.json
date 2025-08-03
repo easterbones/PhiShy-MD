@@ -14,7 +14,11 @@
     "test": "node test.js",
     "test2": "nodemon index.js",
     "eslint": "eslint .",
-    "eslintfix": "eslint --fix ."
+    "eslintfix": "eslint --fix .",
+    "install-deps": "npm install",
+    "install-canvas-win": "npm install canvas@2.11.2 --build-from-source",
+    "install-canvas-linux": "sudo apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev && npm install canvas",
+    "postinstall": "node -e \"console.log('✅ Installazione completata! Se hai problemi con Canvas, consulta il README.');\""
   },
   "homepage": "https://github.com/Giraffaaaaa/phishy-fuck-u",
   "author": {
@@ -58,7 +62,7 @@
     "axios": "^1.1.3",
     "body-parser": "^1.20.2",
     "canvacord": "^6.0.2",
-    "canvas": "^3.1.0",
+    "canvas": "^2.11.2",
     "cfonts": "^2.10.0",
     "chalk": "^5.0.0",
     "cheerio": "1.0.0-rc.12",
@@ -75,6 +79,7 @@
     "fs": "^0.0.1-security",
     "google-it": "^1.6.3",
     "google-play-scraper": "^10.0.0",
+    "gradient-string": "^2.0.2",
     "hispamemes": "^1.0.7",
     "human-readable": "^0.2.1",
     "imagemaker.js": "^2.0.4",

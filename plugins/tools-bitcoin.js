@@ -1,14 +1,33 @@
 import fetch from 'node-fetch';
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import { isCanvasAvailable } from '../lib/canvas-wrapper.js';
 import fs from 'fs';
 import path from 'path';
 
-const width = 800;
-const height = 400;
-const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+// Importa ChartJSNodeCanvas solo se canvas è disponibile
+let ChartJSNodeCanvas = null;
+let chartJSNodeCanvas = null;
+
+if (isCanvasAvailable()) {
+  try {
+    const chartModule = await import('chartjs-node-canvas');
+    ChartJSNodeCanvas = chartModule.ChartJSNodeCanvas;
+    const width = 800;
+    const height = 400;
+    chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
+  } catch (error) {
+    console.warn('⚠️ ChartJS non disponibile:', error.message);
+  }
+}
 
 const handler = async (m, { conn, command }) => {
   try {
+    // Verifica se le funzionalità grafiche sono disponibili
+    if (!isCanvasAvailable() || !chartJSNodeCanvas) {
+      return m.reply('❌ *Errore*: Le funzionalità grafiche non sono disponibili su questo sistema.\n\n' +
+                     'Per utilizzare questo comando è necessario un sistema compatibile con Canvas.\n' +
+                     'Puoi consultare i dati Bitcoin su: https://coinmarketcap.com/');
+    }
+
     const url = 'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=1';
     const res = await fetch(url);
     const json = await res.json();

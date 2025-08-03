@@ -24,7 +24,7 @@ Un bot WhatsApp multi-funzionale con una vasta gamma di funzionalità per gruppi
 
 1. Clona il repository:
 ```bash
-git clone https://github.com/TUO_USERNAME/PhiShy-MD.git
+git clone https://github.com/easterbones/PhiShy-MD.git
 cd PhiShy-MD
 ```
 
@@ -33,15 +33,40 @@ cd PhiShy-MD
 npm install
 ```
 
-3. Configura il bot:
+3. **Problemi con Canvas (Windows)**:
+Se riscontri errori con canvas, prova:
+```bash
+# Opzione 1: Versione compatibile
+npm install canvas@2.11.2
+
+# Opzione 2: Ricompila da sorgente (richiede Visual Studio Build Tools)
+npm run install-canvas-win
+```
+
+**Su Linux/macOS**:
+```bash
+npm run install-canvas-linux
+```
+
+4. Configura il bot:
 ```bash
 node install.js
 ```
 
-4. Avvia il bot:
+5. Avvia il bot:
 ```bash
 npm start
 ```
+
+## ⚠️ Risoluzione Problemi
+
+### Errore Canvas su Windows
+Se vedi errori tipo "canvas.node is not a valid Win32 application":
+
+1. **Installa Visual Studio Build Tools 2022**
+2. **Installa Python 3.x**
+3. **Esegui**: `npm rebuild canvas`
+4. **Alternativa**: Alcuni comandi grafici non funzioneranno ma il bot sarà comunque operativo
 
 ## 📱 Come usare
 
