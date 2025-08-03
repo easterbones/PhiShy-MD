@@ -1,0 +1,35 @@
+node_modules
+# File di sessione e credenziali
+jadibts/
+Sessioni/
+*.creds.json
+store/
+config.js
+
+# File temporanei e backup
+backup/
+data/
+tmp/
+temp/
+
+# File di database locali (se contengono dati sensibili)
+database.json
+*.db
+*.sqlite
+
+# Log files
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

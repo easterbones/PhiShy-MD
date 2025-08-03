@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishy - Menu dei Comandi</title>
+    <style>
+        :root {
+            --primary: #00e5ff;
+            --secondary: #8A2BE2;
+            --dark: #121212;
+            --light-dark: #1e1e1e;
+            --medium-dark: #232323;
+            --text: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('menu-comandi.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.4;
+            z-index: -1;
+            animation: fadeIn 2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 0.4; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: rgba(18, 18, 18, 0.95);
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0, 229, 255, 0.15);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            animation: slideInLeft 1s ease;
+        }
+
+        .logo span {
+            margin-left: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        nav {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            animation: slideInTop 1s ease;
+        }
+
+        @keyframes slideInTop {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 17px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        .main-content {
+            margin-top: 150px;
+            padding-bottom: 50px;
+        }
+
+        .command-section {
+            text-align: center;
+            padding: 40px 0;
+            animation: fadeInUp 1.2s ease;
+        }
+
+        .command-section h1 {
+            font-size: 40px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+        }
+
+        .command-section p {
+            font-size: 18px;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            color: #cccccc;
+        }
+
+        .content {
+            background-color: rgba(30, 30, 30, 0.85);
+            margin: 40px 0;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transform: translateY(30px);
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .content section {
+            padding: 30px;
+        }
+
+        .content h2 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .content h2::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transition: width 0.5s ease;
+        }
+
+        .content h2:hover::after {
+            width: 100%;
+        }
+
+        .command-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: rgba(50, 50, 50, 0.7);
+            border: none;
+            border-radius: 25px;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 229, 255, 0.2);
+        }
+
+        .command-content {
+            background-color: rgba(40, 40, 40, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .command-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .command-content::-webkit-scrollbar-track {
+            background: rgba(30, 30, 30, 0.3);
+            border-radius: 10px;
+        }
+
+        .command-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--secondary));
+            border-radius: 10px;
+        }
+
+        .command-category {
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.2), transparent);
+            padding: 5px 10px;
+            margin: 15px 0 5px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: var(--primary);
+            text-shadow: 0 0 5px rgba(0, 229, 255, 0.3);
+        }
+
+        .command-line {
+            display: flex;
+            margin: 5px 0;
+        }
+
+        .command-name {
+            min-width: 150px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+
+        .command-desc {
+            color: #cccccc;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            background-color: rgba(18, 18, 18, 0.95);
+            margin-top: 50px;
+        }
+
+        footer p {
+            color: #888888;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Pulsante mobile menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Media Queries */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav {
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            nav a {
+                margin: 5px 0;
+                width: 80%;
+                text-align: center;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+                position: absolute;
+                right: 20px;
+                top: 20px;
+            }
+
+            nav {
+                display: none;
+            }
+
+            nav.active {
+                display: flex;
+            }
+
+            .main-content {
+                margin-top: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay"></div>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span>Phishy - Community</span>
+                </a>
+                <button class="mobile-menu-btn">☰</button>
+                <nav>
+                    <a href="/">Pagina iniziale</a>
+                    <a href="menu-comandi.html">Menu dei Comandi</a>
+                    <a href="funzioni-principali.html">Funzioni Principali</a>
+                    <a href="chi-siamo.html">Chi Siamo</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container main-content">
+        <div class="command-section">
+            <h1>Menu dei Comandi di PᏂ𝚒𝑠𝐡ⲩ</h1>
+            <p>Esplora tutti i comandi disponibili per interagire con il nostro bot nella community</p>
+        </div>
+
+        <div class="content">
+            <section>
+                <h2>Categorie dei Comandi</h2>
+                <div class="command-tabs">
+                    <button class="tab-btn active" data-category="all">Tutti</button>
+                    <button class="tab-btn" data-category="gruppo">Gruppo</button>
+                    <button class="tab-btn" data-category="rpg">RPG</button>
+                    <button class="tab-btn" data-category="giochi">Giochi</button>
+                    <button class="tab-btn" data-category="interazione">Interazione</button>
+                    <button class="tab-btn" data-category="admin">Admin</button>
+                </div>
+
+                <div class="command-content" id="all-commands">
+[18/03/2025 20:49] Phishy: scegli la categoria, ad esempio:
+.gruppo
+══════ •⊰✧⊱• ══════
+
+✧ 𝐆𝐑𝐔𝐏𝐏𝐎
+> comandi per tutti`
+✧ 𝐀𝐃𝐌𝐈𝐍
+> comandi per amministratori`
+✧ 𝐎𝐖𝐍𝐄𝐑
+> comandi per easter`
+✧ 𝐑𝐏𝐆
+> comandi per il gioco di ruolo` 
+✧ 𝐀𝐔𝐃𝐈𝐎
+> comandi automatici-audio`
+✧ 𝐄𝐅𝐅𝐄𝐓𝐓𝐈
+> effetti audio`
+✧ 𝐑𝐈𝐒𝐏𝐎𝐒𝐓𝐀 
+> comandi chat automatici`
+✧ 𝐅𝐔𝐍𝐙𝐈𝐎𝐍𝐈
+> funzioni attive nel gruppo`
+══════ •⊰✧⊱• ══════
+
+> MADE BY🏅		𓊈ҽαʂƚҽɾ𓊉𓆇𓃹 aggiornato al 18/02/25 📅
+[18/03/2025 20:50] Phishy: -		ᴍᴇɴᴜ	- 
+ɪ ᴄᴏᴍᴀɴᴅɪ ᴘɪᴜ ᴅɪꜰꜰɪᴄɪʟɪ ᴅᴀ ᴄᴏᴍᴘʀᴇɴᴅᴇʀᴇ ᴀᴠʀᴀɴɴᴏ ᴜɴ ᴄᴏᴍᴍᴇɴᴛᴏ ꜱᴏᴛᴛᴏ
+> esempio di commento
+══════ •⊰✧⊱• ══════
+	                   TOOLS 🔧
+✧ ɪɴᴠᴇɴᴛᴀʀɪᴏ
+> puoi anche usare  .inv o .profilo
+✧ ɪɴꜰᴏ
+> mostra le tue statistiche nel gruppo
+✧ ᴍᴇᴛᴇᴏ (ᴄɪᴛᴛÀ)
+✧ ʜᴅ (ᴘᴇʀ ꜰᴏᴛᴏ)
+✧ ɪᴍɢ (ᴄᴇʀᴄᴀ ꜰᴏᴛᴏ)
+✧ ᴅᴀᴅᴏ (ʟᴀɴᴄɪᴀ ᴜɴ ᴅᴀᴅᴏ)
+✧ ᴍɪꜱᴜʀᴀ ᴘᴇɴᴇ/ᴛᴇᴛᴛᴇ
+══════ •⊰✧⊱• ══════
+
+	                INTERAZIONE 🎪
+✧ ᴅᴀɴᴄᴇ @
+✧ ʙᴀᴄɪᴏ
+✧ ᴀʙʙʀᴀᴄᴄɪᴏ @
+✧ ᴀᴍᴏʀᴇ @
+> calcola l'amore fra te e l'utente che tagghi
+✧ ꜱᴘᴏꜱᴀ @
+✧ ᴅɪᴠᴏʀᴢɪᴀ @
+✧ ᴏᴅɪᴏ @
+✧ ᴅɪᴛᴀʟɪɴᴏ @
+✧ ꜱᴛᴜᴘʀᴀ @
+✧ ꜱᴇɢᴀ @
+✧ ᴡᴡᴇ @
+✧ ɢᴀʏ @
+✧ ʟᴇꜱʙɪᴄᴀ @
+✧ ᴄᴏɢʟɪᴏɴᴇ/ᴀ @
+✧ ᴘᴜᴛᴛᴀɴᴀ @
+✧ ꜰᴇᴄᴄɪᴀ @
+✧ ᴛʀᴏɪᴀ @
+✧ ʙᴀɴᴋᴀɪ @
+✧ ꜱꜰɪᴅᴀ @
+══════ •⊰✧⊱• ══════
+
+	                   TOP 🏅
+✧ ᴛᴏᴘ (ᴍᴇꜱꜱᴀɢɢɪ)
+> mostra gli utenti con piu messaggi
+✧ ʙᴇꜱᴛᴇᴍᴍɪᴇ 
+✧ ᴛᴏᴘɢᴀʏ
+✧ ᴛᴏᴘꜱᴄɪᴍᴍɪᴇ
+══════ •⊰✧⊱• ══════
+
+	                   GIOCHI 🎰
+✧ ᴄᴀɴᴢᴏɴɪ (ᴅᴇᴠɪ ɪɴᴅᴏᴠɪɴᴀʀᴇ 
+               ʟᴀ ᴄᴀɴᴢᴏɴᴇ)
+✧ ʙʟᴀᴄᴋᴊᴀᴄᴋ 
+> ora disponibile ✅
+✧ ꜱʟᴏᴛ
+✧ ᴘᴏᴋᴇʀ
+> in arrivo ⚠
+✧ ɢᴀʀᴀ @
+> se hai una macchina o moto puoi gareggiare
+✧ ᴄᴀɴᴢᴏɴᴇ
+> ci sono ancora troppi bug 📛
+✧ ɢᴀᴛᴛᴏ 
+> spawna un gatto
+
+
+══════ •⊰✧⊱• ══════
+
+> MADE BY🏅		𓊈ҽαʂƚҽɾ𓊉𓆇𓃹 aggiornato al 23/02/25 📅
+[18/03/2025 20:50] Phishy: menu dedicato al gioco di ruolo su whatsapp :
+══════ •⊰✧⊱• ══════
+
+	                   🧿𝒈𝒖𝒂𝒓𝒅𝒂🧿
+✧ 𝐢𝐧𝐯𝐞𝐧𝐭𝐚𝐫𝐢𝐨
+> mostra le tue statistiche e oggetti
+✧ 𝐩𝐫𝐨𝐟𝐢𝐥𝐨
+> mostra le tue statistiche del gioco di ruolo
+✧ 𝐬𝐡𝐨𝐩
+> mostra il menu del negozio, ti servono caramelle per comprare
+✧ 𝐜𝐮𝐫𝐚
+> comprati delle pozioni e cura la tua vita
+✧ 𝐜𝐨𝐦𝐩𝐚/𝐯𝐞𝐧𝐝𝐢
+> interagisci con il negozio
+
+
+	                   🍬𝒔𝒐𝒍𝒅𝒊🍬
+✧ 𝐰𝐨𝐫𝐤
+> lavora e guadagna 
+✧ 𝐩𝐫𝐞𝐠𝐚
+> potresti trovare soldi ma di meno
+✧ 𝐝𝐚𝐢𝐥𝐲/𝐭𝐞𝐬𝐨𝐫𝐨
+> ricevi il tuo premio quotidiano sono due comandi diversi
+✧ 𝐫𝐮𝐛𝐚
+> tagga un utente e rubagli i soldi, ma ci possono essere imprevisti
+✧ 𝐬𝐜𝐚𝐬𝐬𝐚
+> ancora in corso (ruba dalle casseforti) ⚠
+
+	                   🏦𝒕𝒓𝒂𝒏𝒔𝒊𝒛𝒊𝒐𝒏𝒊🏦
+✧ 𝐝𝐞𝐩𝐨𝐬𝐢𝐭𝐚/𝐫𝐢𝐭𝐢𝐫𝐚
+> interagisci con il tuo conto in banca, le tue caramelle non vengono azzerate se muori e stanno in banca
+✧ 𝐭𝐫𝐚𝐧𝐬𝐟𝐞𝐫𝐢𝐬𝐜𝐢
+> dai ad altri utenti i tuoi oggetti/averi
+✧ 𝐰𝐚𝐥𝐥𝐞𝐭 
+> mostra il tuo portafoglio di caramelle
+✧ 𝐬𝐭𝐨𝐜𝐤
+> ancora in corso ⚠
+
+
+	                🎡𝒇𝒖𝒏🎡
+✧ 𝐠𝐚𝐫𝐚
+> gioca a fast and furious con un altro utente
+✧ 𝐛𝐥𝐚𝐜𝐤𝐣𝐚𝐜𝐤 
+> gioca a blackjack contro phishy, se vinci ricevi soldi
+✧ 𝐩𝐨𝐤𝐞𝐫
+> ancora in corso ⚠
+✧ 𝐩𝐞𝐬𝐜𝐚
+> ancora in corso ⚠
+
+══════ •⊰✧⊱• ══════
+
+> MADE BY🏅		𓊈ҽαʂƚҽɾ𓊉𓆇𓃹 aggiornato al 28/02/25 📅
+[18/03/2025 20:50] Phishy: comandi disponibili solo per gli amministratori
+> aggiornato al 17/02/25
+══════ •⊰✧⊱• ══════
+        🗣GRUPPO🗣
+✧ autoadmin
+✧ aperto
+✧ chiuso
+✧ id
+✧ inattivi
+✧ setwelcome
+✧ setbye
+✧ simula
+
+       📨INTERAGIRE📨
+✧ stupra @
+✧ muta @
+✧ setmuta @
+✧ smuta @
+✧ promote @
+✧ demote @
+✧ warn @
+✧ unwarn @
+✧ kick @
+══════ •⊰✧⊱• ══════
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 Phishy Community. Tutti i diritti riservati.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const nav = document.querySelector('nav');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                nav.classList.toggle('active');
+            });
+
+            // Tab functionality
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const commandContent = document.getElementById('all-commands');
+            const originalContent = commandContent.innerHTML;
+            
+            // Separate content by categories for filtering
+            const categoryMap = {
+                'gruppo': ["✧ 𝐆𝐑𝐔𝐏𝐏𝐎", "TOOLS 🔧"],
+                'rpg': ["✧ 𝐑𝐏𝐆", "🧿𝒈𝒖𝒂𝒓𝒅𝒂🧿", "🍬𝒔𝒐𝒍𝒅𝒊🍬", "🏦𝒕𝒓𝒂𝒏𝒔𝒊𝒛𝒊𝒐𝒏𝒊🏦"],
+                'giochi': ["GIOCHI 🎰", "🎡𝒇𝒖𝒏🎡"],
+                'interazione': ["INTERAZIONE 🎪"],
+                'admin': ["✧ 𝐀𝐃𝐌𝐈𝐍", "comandi disponibili solo per gli amministratori", "🗣GRUPPO🗣", "📨INTERAGIRE📨"]
+            };
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    // Get category
+                    const category = this.getAttribute('data-category');
+                    
+                    // Show all commands or filter
+                    if (category === 'all') {
+                        commandContent.innerHTML = originalContent;
+                    } else {
+                        // Get lines containing terms related to this category
+                        const searchTerms = categoryMap[category] || [];
+                        const lines = originalContent.split('\n');
+                        let filteredContent = "";
+                        let includeNextLines = false;
+                        let lineCounter = 0;
+                        
+                        for (const line of lines) {
+                            lineCounter++;
+                            // Check if this line contains any search terms
+                            const containsSearchTerm = searchTerms.some(term => line.includes(term));
+                            
+                            if (containsSearchTerm) {
+                                includeNextLines = true;
+                                filteredContent += line + "\n";
+                            } else if (includeNextLines && (line.includes("══════") || line.includes("MADE BY"))) {
+                                filteredContent += line + "\n";
+                                includeNextLines = false;
+                            } else if (includeNextLines) {
+                                filteredContent += line + "\n";
+                            }
+                        }
+                        
+                        commandContent.innerHTML = filteredContent || "Nessun comando trovato per questa categoria.";
+                    }
+                });
+            });
+
+            // Animazione al scroll
+            const observerOptions = {
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.content').forEach(content => {
+                observer.observe(content);
+            });
+
+            // Effetto parallax per lo sfondo
+            window.addEventListener('scroll', function() {
+                const scrollPosition = window.pageYOffset;
+                const background = document.querySelector('.background-overlay');
+                background.style.transform = 'translateY(' + scrollPosition * 0.4 + 'px)';
+            });
+            
+            // Highlight di sintassi per i comandi
+            const commandLines = document.querySelectorAll('.command-content');
+            commandLines.forEach(block => {
+                // Highlight command names
+                block.innerHTML = block.innerHTML.replace(
+                    /✧\s([^\n>]+)/g, 
+                    '✧ <span style="color: #ffcc00; font-weight: bold;">$1</span>'
+                );
+                
+                // Highlight comments
+                block.innerHTML = block.innerHTML.replace(
+                    />\s([^\n]+)/g, 
+                    '> <span style="color: #aaaaaa; font-style: italic;">$1</span>'
+                );
+                
+                // Highlight categories
+                block.innerHTML = block.innerHTML.replace(
+                    /(TOOLS|INTERAZIONE|TOP|GIOCHI|🧿𝒈𝒖𝒂𝒓𝒅𝒂|🍬𝒔𝒐𝒍𝒅𝒊|🏦𝒕𝒓𝒂𝒏𝒔𝒊𝒛𝒊𝒐𝒏𝒊|🎡𝒇𝒖𝒏|🗣GRUPPO|📨INTERAGIRE)[^<\n]*/g,
+                '<span style="color: cyan; text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);">$&</span>'
+                );
+                
+                // Highlight separators
+                block.innerHTML = block.innerHTML.replace(
+                    /(══════ •⊰✧⊱• ══════)/g,
+                    '<span style="color: var(--primary); font-weight: bold;">$&</span>'
+                );
+                
+                // Highlight status indicators
+                block.innerHTML = block.innerHTML.replace(
+                    /(✅|⚠|📛)/g,
+                    '<span style="text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">$&</span>'
+                );
+                
+                // Highlight author tag
+                block.innerHTML = block.innerHTML.replace(
+                    /(MADE BY🏅\s+𓊈ҽαʂƚҽɾ𓊉𓆇𓃹 aggiornato al [0-9]{2}\/[0-9]{2}\/[0-9]{2} 📅)/g,
+                    '<span style="color: gold; font-style: italic; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);">$&</span>'
+                );
+            });
+        });
+        
+        // Aggiungi funzionalità di ricerca
+        const searchBox = document.createElement('input');
+        searchBox.type = 'text';
+        searchBox.placeholder = 'Cerca comandi...';
+        searchBox.classList.add('search-box');
+        searchBox.style.cssText = `
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            margin: 20px 0;
+            border-radius: 25px;
+            border: 2px solid var(--primary);
+            background: rgba(30, 30, 30, 0.8);
+            color: var(--text);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        `;
+        
+        searchBox.addEventListener('focus', function() {
+            this.style.boxShadow = '0 0 15px rgba(0, 229, 255, 0.5)';
+            this.style.borderColor = 'var(--secondary)';
+        });
+        
+        searchBox.addEventListener('blur', function() {
+            this.style.boxShadow = '0 0 10px rgba(0, 229, 255, 0.2)';
+            this.style.borderColor = 'var(--primary)';
+        });
+        
+        document.querySelector('.command-tabs').before(searchBox);
+        
+        searchBox.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const commandContent = document.getElementById('all-commands');
+            const originalContent = commandContent.innerHTML;
+            
+            if (searchTerm.length < 2) {
+                // Reset to active tab content
+                const activeTab = document.querySelector('.tab-btn.active');
+                activeTab.click();
+                return;
+            }
+            
+            const lines = originalContent.split('\n');
+            let filteredContent = "";
+            let includeNextLines = false;
+            let lineCounter = 0;
+            
+            for (const line of lines) {
+                lineCounter++;
+                // Check if this line contains the search term
+                if (line.toLowerCase().includes(searchTerm)) {
+                    includeNextLines = true;
+                    filteredContent += line + "\n";
+                } else if (includeNextLines && (line.includes("══════") || line.includes("MADE BY"))) {
+                    filteredContent += line + "\n";
+                    includeNextLines = false;
+                } else if (includeNextLines) {
+                    filteredContent += line + "\n";
+                }
+            }
+            
+            commandContent.innerHTML = filteredContent || "Nessun comando trovato per questa ricerca.";
+            
+            // Re-apply syntax highlighting
+            const commandLines = document.querySelectorAll('.command-content');
+            commandLines.forEach(block => {
+                // Highlight command names
+                block.innerHTML = block.innerHTML.replace(
+                    /✧\s([^\n>]+)/g, 
+                    '✧ <span style="color: #ffcc00; font-weight: bold;">$1</span>'
+                );
+                
+                // Highlight comments
+                block.innerHTML = block.innerHTML.replace(
+                    />\s([^\n]+)/g, 
+                    '> <span style="color: #aaaaaa; font-style: italic;">$1</span>'
+                );
+                
+                // Highlight categories
+                block.innerHTML = block.innerHTML.replace(
+                    /(TOOLS|INTERAZIONE|TOP|GIOCHI|🧿𝒈𝒖𝒂𝒓𝒅𝒂|🍬𝒔𝒐𝒍𝒅𝒊|🏦𝒕𝒓𝒂𝒏𝒔𝒊𝒛𝒊𝒐𝒏𝒊|🎡𝒇𝒖𝒏|🗣GRUPPO|📨INTERAGIRE)[^<\n]*/g,
+                    '<span style="color: cyan; text-shadow: 0 0 5px rgba(0, 229, 255, 0.5);">$&</span>'
+                );
+                
+                // Highlight separators
+                block.innerHTML = block.innerHTML.replace(
+                    /(══════ •⊰✧⊱• ══════)/g,
+                    '<span style="color: var(--primary); font-weight: bold;">$&</span>'
+                );
+                
+                // Highlight status indicators
+                block.innerHTML = block.innerHTML.replace(
+                    /(✅|⚠|📛)/g,
+                    '<span style="text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);">$&</span>'
+                );
+                
+                // Highlight author tag
+                block.innerHTML = block.innerHTML.replace(
+                    /(MADE BY🏅\s+𓊈ҽαʂƚҽɾ𓊉𓆇𓃹 aggiornato al [0-9]{2}\/[0-9]{2}\/[0-9]{2} 📅)/g,
+                    '<span style="color: gold; font-style: italic; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);">$&</span>'
+                );
+                
+                // Highlight search term
+                if (searchTerm.length >= 2) {
+                    const regex = new RegExp(searchTerm, 'gi');
+                    block.innerHTML = block.innerHTML.replace(
+                        regex,
+                        match => `<mark style="background-color: rgba(138, 43, 226, 0.6); color: white; border-radius: 2px; padding: 0 2px;">${match}</mark>`
+                    );
+                }
+            });
+        });
+        
+        // Aggiungi pulsante torna su
+        const backToTopButton = document.createElement('button');
+        backToTopButton.innerHTML = '↑';
+        backToTopButton.classList.add('back-to-top');
+        backToTopButton.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 999;
+        `;
+        
+        document.body.appendChild(backToTopButton);
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopButton.style.opacity = '1';
+                backToTopButton.style.visibility = 'visible';
+            } else {
+                backToTopButton.style.opacity = '0';
+                backToTopButton.style.visibility = 'hidden';
+            }
+        });
+        
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Aggiungi animazione per i pulsanti delle categorie
+        document.querySelectorAll('.tab-btn').forEach((btn, index) => {
+            btn.style.animationDelay = `${index * 0.1}s`;
+            btn.style.animation = 'fadeInUp 0.5s ease forwards';
+        });
+        
+        // Migliora la leggibilità del testo dei comandi
+        const commandContentEl = document.querySelector('.command-content');
+        commandContentEl.style.cssText += `
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            padding: 25px;
+            line-height: 1.8;
+            text-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
+        `;
+    </script>

@@ -1,0 +1,41 @@
+import TelegramBot from 'node-telegram-bot-api';
+
+const telegramToken = '8259919290:AAEEQsaxBkz8eT9PO9z_znCJDL3Af2g6iLA';
+const telegramChatId = '5913040754';
+
+// Inizializza il bot Telegram una sola volta
+const telegramBot = new TelegramBot(telegramToken, { polling: true });
+let lastSender = null;
+
+// Quando Telegram risponde, invia la risposta su WhatsApp
+telegramBot.on('message', async (msg) => {
+    if (!lastSender) return;
+    if (msg.chat.id === Number(telegramChatId)) {
+        await global.conn.sendMessage(lastSender, { text: `📩 Risposta da Telegram:\n${msg.text}` });
+        lastSender = null; // resetta
+    }
+});
+
+const handler = async (m, { command, conn, text }) => {
+    lastSender = m.chat; // salva il mittente per rispondere poi
+
+    if (!text) {
+        await m.reply('❌ Per favore, aggiungi un messaggio dopo il comando. Esempio: .telegram Ciao come stai');
+        return;
+    }
+
+    await m.reply('✅ Comando inviato a Telegram... Attendi una risposta!');
+    await telegramBot.sendMessage(telegramChatId, text);
+};
+
+handler.command = /^telegram$/i;
+handler.help = ['telegram'];
+handler.tags = ['tools'];
+
+// Inizializza il bot Telegram una sola volta
+if (telegramBot.isPolling()) {
+    await telegramBot.stopPolling();
+}
+await telegramBot.startPolling();
+
+export default handler;

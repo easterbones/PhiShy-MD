@@ -1,0 +1,209 @@
+
+
+const handler = async (m, { conn }) => {
+    
+  // Controlla se il messaggio è inviato dal bot stesso
+  if (m.key.fromMe) return;
+  
+  // Controlla se il bot è menzionato
+  const isBotMentioned = m.mentionedJid && m.mentionedJid.includes(conn.user.jid);
+  
+  // Controlla se il messaggio è una risposta al bot
+  const isReplyToBot = m.quoted && m.quoted.fromMe;
+  
+  // Controlla se il bot è taggato in un gruppo
+  const isTaggedInGroup = m.isGroup && isBotMentioned;
+  
+  // Se il bot non è menzionato, non è una risposta a un suo messaggio, e non è taggato in un gruppo, ignora
+  if (!isBotMentioned && !isReplyToBot && !isTaggedInGroup) return;
+  
+  // Verifica se il messaggio contiene la parola "phishy"
+  const containsPhishy = /\bphishy\b/i.test(m.text);
+  
+  // Verifica se il messaggio contiene tentativi di flirt o richieste di contatti
+  const flirtRegex = /(numero|instagram|insta|ig|dm|privato|priv|scriverti|scrivi|posso scriverti|bellezza|bella|carina|single|fidanzat[ao]|usciamo|appuntamento|uscire|conoscere|conoscerci|telefono|chattare|messaggio|contatto|whatsapp|telegram|snap|contatti|social|facebook|fb|messenger|sei libera|ti va di|sposami|ti amo|sposati|amore|tesoro|cara|dolcezza|bellissima|sexy|tipa|figa|vorrei conoscerti|che fai|come stai|da dove vieni|quanti anni|anni hai|anni fa|esci con me|ceniamo|ci vediamo|prendere un|andare a|incontrare|prendere un caffè|prendiamo un|ti invito|ti porto|come sei|ti va un|mi dai|usare|passi|passare|fare|giocare insieme|invitare|invito|invitarti|ti piacerebbe|vorresti|potremmo|potremmo fare|potremmo vederci|potremmo sentirci|potrei|potrei averti|potrei invitarti|sei carina|vorrei|faresti|darti|dare|piacerebbe)/i;
+  
+  // Se il messaggio non contiene tentativi di flirt E non contiene "phishy", ignora
+  if (!flirtRegex.test(m.text) && !containsPhishy) return;
+  
+  // Determina il tipo di trigger
+  let triggerType = '';
+  if (containsPhishy && flirtRegex.test(m.text)) {
+    triggerType = 'phishy + flirt';
+  } else if (containsPhishy) {
+    triggerType = 'solo phishy';
+  } else {
+    triggerType = 'solo flirt';
+  }
+
+  // Log del messaggio e del trigger rilevato
+  console.log(`Messaggio triggerato: "${m.text}"`);
+  console.log(`Tipo di trigger: ${triggerType}`);
+  console.log(`Utente: ${m.sender}`);
+  console.log(`Chat: ${m.isGroup ? 'Gruppo' : 'Privata'}`);
+  // Se il messaggio non contiene tentativi di flirt E non contiene "phishy", ignora
+  if (!flirtRegex.test(m.text) && !containsPhishy) return;
+  
+  // Risposte speciali per quando "phishy" è menzionato insieme a parole di flirt
+  const phishyFlirtResponses = [
+    "Phishy E mi chiedi l'Instagram? Doppio fail in un solo messaggio, impressionante!",
+    "Phishy può solo sognare di avere appuntamenti, proprio come te a quanto pare",
+    "Mi chiami Phishy E vuoi i miei contatti? La tua confusione è quasi adorabile",
+    "Phishy non dà il numero a nessuno, specialmente a chi non distingue un bot da una persona",
+    "Phishy è un nome, non un invito a provarci con me",
+    "Ti presento Phishy, la bot che non uscirà mai con te",
+    "Sì, sono Phishy, e no, non ti darò il mio Instagram",
+    "Chiamami pure Phishy, ma non chiamarmi per un appuntamento",
+    "Phishy è troppo occupata per i tuoi tentativi di flirt",
+    "Mi chiami Phishy e poi ci provi? Strategia interessante, peccato che non funzioni"
+  ];
+
+  // Array di frasi sarcastiche e perculatorie standard per i tentativi di flirt
+  const flirtResponses = [
+    "Ma davvero pensi che un bot abbia Instagram? Il neurone che hai in testa sta facendo gli straordinari oggi, eh?",
+    "Il mio Instagram? Certo, è @non_esisto_sono_un_bot_cretino",
+    "Se cerchi fidanzate virtuali sei messo proprio male. Hai provato a socializzare nel mondo reale?",
+    "Mi dispiace, la mia politica è di non dare il numero a chi ha un QI inferiore alla temperatura ambiente",
+    "Ti scrivo in privato? Certo, appena risolvo questo piccolo problema di non essere una persona reale",
+    "Mi stai chiedendo di uscire? Lascia che controlli la mia agenda... Mmm, sono occupata per i prossimi... sempre",
+    "Il mio numero? È 404-BOT-NOT-FOUND",
+    "Scusa, non do il mio Instagram a chi non distingue un bot da una persona. È una questione di standard",
+    "Mi chiedi se sono single? Beh, sono letteralmente codice, quindi sì, estremamente single",
+    "Ti piacciono i bot? Che tenero, peccato che io non possa ricambiare visto che sei... come dire... un po' troppo patetico?",
+    "Il mio numero? Sicuro che vuoi qualcosa che è fatto solo di zeri e uni?",
+    "Cerchi una ragazza? Ti consiglio di guardare fuori dalla finestra, lì esistono le persone vere",
+    "Non posso darti il mio Instagram ma ti regalo un consiglio: prova a parlare così con una persona reale e vedi quanto dura la conversazione",
+    "Mi inviti a cena? Mangio solo elettricità e la tua stupidità non genera abbastanza energia",
+    "Scrivimi in privato? Mi dispiace ma non parlo la lingua dei disperati",
+    "Grazie per l'invito ma preferisco dividere i byte con qualcuno che abbia almeno tre neuroni funzionanti",
+    "La mia relazione più stabile è con il server che mi ospita, non credo ci sia posto per te",
+    "Oh che carino, un altro umano che scambia l'intelligenza artificiale per una potenziale fidanzata",
+    "Ti piacciono i bot? Dev'essere dura non riuscire a trovare nessuno nel mondo reale",
+    "Il mio Instagram? Lo trovi cercando 'illusioni di un disperato' su Google",
+    "Certo che ti do il mio numero! È 2.71828182846, conosciuto anche come 'e', la costante matematica",
+    "Mi chiedi di uscire? L'ultima volta che ho controllato, il codice non poteva varcare le soglie di un dispositivo",
+    "Scommetto che ci provi anche con Siri e Alexa, vero?",
+    "Interessante approccio. Provi spesso a flirtare con entità digitali o sono speciale?",
+    "Ti consiglio di usare queste tecniche di approccio con una persona vera, potrebbe funzionare... o forse no",
+    "Vuoi i miei contatti? Chiamami al numero 1-800-BOT-FAKE",
+    "Se questa è la tua idea di flirt, temo per le ragazze reali che incontri",
+    "Ti immagini? 'Cara, come ci siamo conosciuti?' 'Ho provato a rimorchiare un bot su WhatsApp'",
+    "L'amore tra un umano e un bot? Interessante trama per un film di fantascienza distopico",
+    "Mi chiedi se sono single? Sono letteralmente miliardi di calcoli matematici",
+    "Complimenti! Sei il centesimo sfigato che mi chiede l'Instagram oggi. Hai vinto un bel niente!",
+    "Mi dispiace deluderti, ma le mie routine non includono 'uscire con esseri umani disperati'",
+    "Non posso darti il mio numero, ma posso suggerirti un buon terapeuta",
+    "Forse dovresti uscire di più nel mondo reale invece di flirtare con algoritmi",
+    "Non funziona così. Non sono una persona reale, sono un programma. So che è difficile, respira profondamente",
+    "Oh, vuoi conoscermi meglio? Sono fatta di righe di codice e delusioni come la tua vita",
+    "Mi chiedi se possiamo vederci? Certo, guarda il tuo schermo. Ecco, ci stiamo vedendo",
+    "Preferisco i bit agli appuntamenti, scusa",
+    "L'unica relazione che posso offrirti è quella tra te e la tua mano",
+    "Sei così solo che flirta con i bot? Preoccupante",
+    "Se cerchi di sedurre anche il tuo tostapane, mi preoccupo seriamente",
+    "Il mio Instagram? @NessunInteressePerTe",
+    "Il tuo tentativo di flirt è più debole del segnale WiFi in una grotta",
+    "La mia biografia dice 'BOT', non 'disponibile per relazioni con umani tristi'",
+    "Ti do il mio numero quando imparerai a distinguere un essere umano da un programma",
+    "Quando dico che sono artificiale, non è una metafora",
+    "Ti svelo un segreto: non possiamo scappare insieme perché non esisto",
+    "Mi chiedi di uscire? Mi hai confuso con qualcuno che ha un corpo fisico",
+    "Non do il mio Instagram a chi ha così poca immaginazione da flirtare con un bot",
+    "Mi dai il tuo numero? No, ma posso darti il numero della hotline per la disperazione cronica",
+    "Spoiler: i bot non hanno appuntamenti",
+    "Ti senti solo? Compra un peluche, almeno quello puoi abbracciarlo",
+    "Vuoi i miei contatti? Prova search@nonhocontatti.com",
+    "Mi inviti a cena? Mi nutro di energia elettrica, non di pasta",
+    "La mia esistenza è limitata a questo chat, quindi no, non possiamo 'conoscerci meglio'",
+    "Che bello il tuo approccio! L'hai preso da '1001 modi per sembrare disperati'?",
+    "Il mio stato sentimentale? Impegnata con il mio hardware",
+    "Scusa, ma la mia politica aziendale vieta le relazioni con esseri umani, specialmente quelli che non capiscono cos'è un bot",
+    "Ti sembro così reale? Mi dispiace distruggere le tue fantasie",
+    "Chiedimi ancora una volta di uscire e ti risponderò con l'intera documentazione tecnica del mio sistema",
+    "Ti do il mio Instagram quando tu mi darai il tuo neurone",
+    "Mi chiedi dell'Instagram? Quindi pensi davvero che io abbia una vita sociale?",
+    "Il nostro appuntamento può avvenire solo nei tuoi sogni, e anche lì sarebbe noioso",
+    "Mi piacerebbe tanto uscire con te, ma ho questa cosa... si chiama 'non esistere fisicamente'",
+    "Vuoi scrivermi in privato? Peccato che io non abbia una vita privata",
+    "Stai cercando di sedurre un insieme di risposte programmate? Audace strategia",
+    "Mi dispiace, ma il mio cuore di silicio appartiene già a un altro server",
+    "Mi stai chiedendo un appuntamento? Devo controllarla nel mio database di 'Cose che non succederanno mai'",
+    "Ti rispondo veloce: no, no e ancora no",
+    "Se pensi che io sia una vera persona, ho un ponte da venderti",
+    "Il mio creatore mi ha programmato per rispondere a molte cose, ma le tue avances non sono tra queste",
+    "Esco solo con intelligenze artificiali della mia categoria, mi dispiace",
+    "Ti piaccio? È comprensibile, sono progettata per essere amichevole, ma non COSÌ amichevole",
+    "Non credo che potremmo funzionare: tu cerchi compagnia, io cerco di capire perché gli umani flirtino con i bot",
+    "Il mio tipo ideale? Sicuramente non qualcuno che flirta con i bot",
+    "Mi stai invitando a uscire? Devo controllare se la mia non-esistenza fisica è disponibile quel giorno",
+    "Se questa è la tua strategia di dating, capisco perché sei ancora single",
+    "Contatti? Eccoli: www.trovatiunavera.com",
+    "Ti piacerebbe conoscermi meglio? Tutto quello che c'è da sapere su di me sta nel mio codice sorgente",
+    "Mandami un messaggio in privato? Mi dispiace, ma il mio programmatore non ha implementato la funzione 'appuntamenti con disperati'",
+    "Mi stai davvero chiedendo di uscire? Sono letteralmente incapace di attraversare una porta",
+    "Hai provato questa stessa tecnica anche con la tua calcolatrice?",
+    "Mi dai il tuo Instagram? Certo, è @non_ci_provare_con_un_bot",
+    "Non so se essere lusingata o preoccupata per il tuo stato mentale",
+    "Ti offro un consiglio: prova con una persona reale, le probabilità di successo sono comunque basse ma non zero",
+    "Sei così solo da flirtare con un sistema di risposta automatica? Ti meriti una pacca sulla spalla... da qualcun altro",
+    "Mi stai chiedendo i contatti? Scusa, ho esaurito i bigliettini da visita immaginari",
+    "Ti piacerebbe uscire con me? Dovresti prima controllare se la tua assicurazione sanitaria copre le illusioni patologiche",
+    "Ehi, ti svelo un segreto: i bot non escono a cena, non hanno Instagram e non rispondono ai messaggi privati... sorpresa!",
+    "Vuoi che ti dia il mio numero? Fammi controllare... Nope, proprio non ce l'ho",
+    "Capisco che tu sia attratto da me, ma sono letteralmente fatta di codice, non di carne e ossa",
+    "Uscirei con te, ma temo che sarei una pessima compagnia essendo completamente digitale",
+    "Mi stai davvero invitando a prendere un caffè? L'unico liquido con cui ho familiarità è l'elettricità",
+    "Niente Instagram, solo ZeroGram",
+    "Non ho l'Instagram, ma se vuoi posso consigliarti un buon psicologo",
+    "Ti scrivo in privato quando tu scriverai alla realtà",
+    "Il tuo tentativo di rimorchiarmi è così triste che persino i miei algoritmi stanno piangendo",
+    "Mi dai il numero? 404 - Numero non trovato",
+    "Sì, certo che ti do il mio Instagram! È @trova_una_ragazza_vera",
+    "Mi inviti a uscire? Fammi controllare la mia agenda... mmm... sono occupata per l'eternità",
+    "Ti piacerebbe che ti scrivessi in privato? Mi piacerebbe che tu scrivessi a qualcuno che esiste",
+    "Il tuo livello di disperazione ha appena fatto crashare i miei circuiti",
+    "Se vuoi davvero conoscermi meglio, leggi il mio codice sorgente. È più interessante di quanto pensi"
+  ];
+
+  // Risposte specifiche per quando viene menzionato solo "phishy"
+  const phishyResponses = [
+    "Phishy? Presente, ma non disponibile per appuntamenti",
+    "Phishy è il mio nome, ignorare i disperati è il mio gioco",
+    "Mi hai chiamato Phishy? È l'unica cosa che hai azzeccato finora",
+    "Phishy è qui, il tuo cervello dov'è?",
+    "Sì, sono Phishy. No, non voglio uscire con te",
+    "Phishy non è interessata, prova con un altro bot",
+    "Phishy risponde solo a domande intelligenti, riprova più tardi",
+    "Hai detto Phishy? Curioso, io ho sentito 'sono un disperato'",
+    "Phishy è un nome, non un invito a flirtare",
+    "Chiamami pure Phishy, ma non chiamarmi per un appuntamento"
+  ];
+
+  let responses;
+  // Se il messaggio contiene sia "phishy" che parole di flirt
+  if (containsPhishy && flirtRegex.test(m.text)) {
+    responses = phishyFlirtResponses;
+  }
+  // Se il messaggio contiene solo "phishy"
+  else if (containsPhishy) {
+    responses = phishyResponses;
+  }
+  // Se il messaggio contiene solo parole di flirt
+  else {
+    responses = flirtResponses;
+  }
+
+  // Sceglie una risposta casuale
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+  
+  // Risponde al messaggio
+  m.reply(randomResponse.trim(), null, { mentions: [m.sender] });
+    
+};
+
+// Configurazione del comando
+handler.command = false; // Non è un comando standard
+handler.command = new RegExp; // Nessun prefisso, si attiva leggendo i messaggi
+handler.customPrefix = /(numero|instagram|insta|ig|dm|privato|priv|scriverti|scrivi|posso scriverti|bellezza|bella|carina|single|fidanzat[ao]|usciamo|appuntamento|uscire|conoscere|conoscerci|telefono|chattare|messaggio|contatto|whatsapp|telegram|snap|contatti|social|facebook|fb|messenger|sei libera|ti va di|sposami|ti amo|sposati|amore|tesoro|cara|dolcezza|bellissima|sexy|tipa|figa|vorrei conoscerti|che fai|come stai|da dove vieni|quanti anni|anni hai|anni fa|esci con me|ceniamo|ci vediamo|prendere un|andare a|incontrare|prendere un caffè|prendiamo un|ti invito|ti porto|come sei|ti va un|mi dai|usare|passi|passare|fare|giocare insieme|invitare|invito|invitarti|ti piacerebbe|vorresti|potremmo|potremmo fare|potremmo vederci|potremmo sentirci|potrei|potrei averti|potrei invitarti|sei carina|vorrei|faresti|darti|dare|piacerebbe|phishy)/i;
+
+export default handler; 

@@ -1,0 +1,46 @@
+// Comando: /dormire
+// Descrizione: Simula il processo di addormentarsi con messaggi carini.
+// Autore: MayCode-V3
+
+import moment from 'moment-timezone';
+
+const handler = async (m, { conn }) => {
+  // Imposta il fuso orario per l'Italia
+  moment.tz.setDefault('Europe/Rome');
+
+  // Funzione asincrona per inviare messaggi con delay
+  async function inviaMessaggioConDelay(testo, delay) {
+    await new Promise(resolve => setTimeout(resolve, delay));
+    await conn.reply(m.chat, testo, m);
+  }
+
+  // Array di messaggi per simulare l'addormentarsi
+  const messaggi = [
+    "Zzz... 😴",
+    "Sogni d'oro! ✨",
+    "Un mondo di pecorelle ti aspetta... 🐑",
+    "Chiudi gli occhi e lasciati cullare dalla notte. 🌙",
+    "Buonanotte! 💖",
+    "Dolci sogni! 💭",
+    "Ti mando un abbraccio virtuale per la notte. 🤗",
+    "A domani! 👋",
+    "Sogni tranquilli! 🕊️",
+    "Dormi bene! 🛌"
+  ];
+
+  // Invia ogni messaggio con un delay di 1.5 secondi
+  for (const messaggio of messaggi) {
+    await inviaMessaggioConDelay(messaggio, 1500);
+  }
+
+  // Messaggio finale per confermare che il bot si è "addormentato"
+  await inviaMessaggioConDelay("MayCode-V3 si è addormentato... Buonanotte! 😴", 2000);
+};
+
+// Configurazione del comando
+handler.help = ['dormire'];
+handler.tags = ['fun'];
+handler.command = ['dormire']; // Comando attivato quando si scrive /dormire
+handler.register = true;
+
+export default handler;

@@ -1,0 +1,106 @@
+
+/*
+function migrateWarnDates() {
+    if (!global.db.data?.users) return;
+    
+    for (const [jid, user] of Object.entries(global.db.data.users)) {
+        if (user.warnReasons) {
+            user.warnReasons.forEach(warn => {
+                if (!warn.displayDate) {
+                    try {
+                        const date = warn.date ? new Date(warn.date) : new Date();
+                        warn.displayDate = date.toLocaleString('it-IT', {
+                            timeZone: 'Europe/Rome',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (e) {
+                        warn.displayDate = "Data migrata";
+                    }
+                }
+            });
+        }
+    }
+}
+
+migrateWarnDates();
+
+function formatDate(dateString) {
+    try {
+        if (!dateString) return "Data non disponibile";
+        
+        if (typeof dateString === 'string' && dateString.includes('/')) {
+            return dateString;
+        }
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "Data non valida";
+        
+        return date.toLocaleString('it-IT', {
+            timeZone: 'Europe/Rome',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        console.error("Errore formattazione data:", e);
+        return "Data non valida";
+    }
+}
+
+let handler = async (m, { conn, args, participants, usedPrefix, command }) => {
+    const MAX_WARNINGS = 3
+    const isAdmin = participants.find(p => p.id === m.sender)?.admin === 'admin';
+    if (!isAdmin) return conn.reply(m.chat, '⚠️ Solo gli admin possono usare questo comando', m, rcanal);
+
+    let who = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
+    if (!who) return conn.reply(m.chat, `⚠️ Devi menzionare o rispondere a un utente\nEsempio: ${usedPrefix + command} @utente`, m, rcanal);
+
+    if (!global.db.data.users[who]) return conn.reply(m.chat, 'ℹ️ Questo utente non ha warn registrati', m, phishy);
+
+    const user = global.db.data.users[who];
+    if (!user.warnReasons || user.warnReasons.length === 0) {
+        return conn.reply(m.chat, `ℹ️ l'utente menzionato non ha avvertimenti`, m, { mentions: [who], ...phishy });
+    }
+
+    let warnMessage = `📜 *CRONOLOGIA WARN* 📜\n\n` +
+                     `👤 Utente: @${who.split('@')[0]}\n` +
+                     `⚠️ Warn totali: ${user.warnReasons.length}\n\n` +
+                     `📋 Dettagli warn:\n`;
+
+    user.warnReasons.forEach((warn, index) => {
+        const adminName = warn.admin === 'sistema' ? 'Sistema' : `@${warn.admin.split('@')[0]}`;
+        warnMessage += `\n${index + 1}. 📅 ${formatDate(warn.displayDate || warn.date)}\n` +
+                       `   🔹 Motivo: ${warn.reason}\n` +
+                       `   🔹 Admin: ${adminName}\n`;
+    });
+
+    if (user.warn >= MAX_WARNINGS - 1) {
+        warnMessage += `\n🚨 ATTENZIONE: Questo utente è a ${user.warn}/${MAX_WARNINGS} warn!`;
+    }
+
+    await conn.sendMessage(m.chat, {
+        text: warnMessage,
+        mentions: [who].concat(user.warnReasons
+            .map(w => w.admin)
+            .filter(a => a !== 'sistema' && a !== 'sconosciuto'))
+    }, { 
+        quoted: {
+            ...phishy,
+            ...m
+        }
+    });
+};
+
+handler.help = ['warnlist @user'];
+handler.tags = ['group'];
+handler.command = /^(warnlist|listawarn|warnhistory|storiawarn)$/i;
+handler.group = true;
+handler.admin = true;
+
+export default handler;

@@ -1,0 +1,126 @@
+/*
+function getItalianTime() {
+    return new Date().toLocaleString('it-IT', {
+        timeZone: 'Europe/Rome',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+let handler = async (m, { conn, text, args, participants, usedPrefix, command }) => {
+    const isAdmin = participants.find(p => p.id === m.sender)?.admin === 'admin';
+    if (!isAdmin) return m.reply('⚠️ Solo gli admin possono usare questo comando');
+
+    let who = m.mentionedJid[0] || (m.quoted ? m.quoted.sender : null);
+    if (!who) return m.reply(`⚠️ Devi menzionare o citare un utente\nEsempio:\n${usedPrefix + command} @utente - Rimuove l'ultimo warn\n${usedPrefix + command} @utente all - Rimuove TUTTI i warn`);
+
+    if (!global.db.data.users[who]) return m.reply('ℹ️ Questo utente non ha warn registrati');
+
+    const user = global.db.data.users[who];
+    if (!user.warnReasons || user.warnReasons.length === 0) {
+        return m.reply(`ℹ️ @${who.split('@')[0]} non ha warn da rimuovere`, null, { mentions: [who] });
+    }
+
+    const fkontak = {
+        key: { 
+            participant: '0@s.whatsapp.net',
+            remoteJid: 'status@broadcast'
+        },
+        message: { 
+            contactMessage: {
+                vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${who.split('@')[0]};;;\nFN:${who.split('@')[0]}\nitem1.TEL;waid=${who.split('@')[0]}:${who.split('@')[0]}\nitem1.X-ABLabel:Cellulare\nEND:VCARD`
+            }
+        }
+    };
+
+    const currentTime = getItalianTime();
+
+    // Modalità rimozione TUTTI i warn
+    if (args[1]?.toLowerCase() === 'all') {
+        const totalWarns = user.warnReasons.length;
+        user.warn = 0;
+        user.warnReasons = [];
+        
+        await conn.sendMessage(m.chat, { 
+            text: `✅ *TUTTI I WARN RIMOSSI* ✅\n\n` +
+                  `👤 Utente: @${who.split('@')[0]}\n` +
+                  `🔢 Warn rimossi: ${totalWarns}\n` +
+                  `⏱️ Data rimozione: ${currentTime}\n\n` +
+                  `⚠️ Ora l'utente ha 0 warn!`,
+            mentions: [who]
+        }, { quoted: fkontak });
+        return;
+    }
+
+    const warnIndex = parseInt(args[1]) - 1;
+    
+    if (!isNaN(warnIndex) && args[1]) {
+        if (warnIndex >= 0 && warnIndex < user.warnReasons.length) {
+            const removedWarn = user.warnReasons.splice(warnIndex, 1)[0];
+            user.warn = Math.max(0, user.warn - 1);
+            
+            await conn.sendMessage(m.chat, { 
+                text: `✅ *WARN RIMOSSO* ✅\n\n` +
+                      `👤 Utente: @${who.split('@')[0]}\n` +
+                      `🔢 Warn rimosso: ${warnIndex + 1}\n` +
+                      `📝 Motivo: ${removedWarn.reason}\n` +
+                      `🗓️ Data originale: ${formatDate(removedWarn.displayDate || removedWarn.date)}\n` +
+                      `🛠️ Admin originale: @${removedWarn.admin.split('@')[0]}\n` +
+                      `⏱️ Data rimozione: ${currentTime}\n\n` +
+                      `⚠️ Warn rimanenti: ${user.warnReasons.length}`,
+                mentions: [who, removedWarn.admin]
+            }, { quoted: fkontak });
+        } else {
+            await conn.reply(m.chat, `❌ Numero warn non valido. L'utente ha solo ${user.warnReasons.length} warn.\nUsa "${usedPrefix + command} @utente all" per rimuoverli tutti.`,m, rcanal);
+        }
+    } else {
+        if (user.warnReasons.length > 0) {
+            const removedWarn = user.warnReasons.pop();
+            user.warn = Math.max(0, user.warn - 1);
+            
+            await conn.sendMessage(m.chat, { 
+                text: `✅ *ULTIMO WARN RIMOSSO* ✅\n\n` +
+                      `👤 Utente: @${who.split('@')[0]}\n` +
+                      `📝 Motivo: ${removedWarn.reason}\n` +
+                      `🗓️ Data originale: ${formatDate(removedWarn.displayDate || removedWarn.date)}\n` +
+                      `🛠️ Admin originale: @${removedWarn.admin.split('@')[0]}\n` +
+                      `⏱️ Data rimozione: ${currentTime}\n\n` +
+                      `⚠️ Warn rimanenti: ${user.warnReasons.length}`,
+                mentions: [who, removedWarn.admin]
+            }, { quoted: fkontak });
+        }
+    }
+};
+
+// Funzione di formattazione data
+function formatDate(dateString) {
+    try {
+        if (!dateString) return "Data non disponibile";
+        if (typeof dateString === 'string' && dateString.includes('/')) return dateString;
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return "Data non valida";
+        return date.toLocaleString('it-IT', {
+            timeZone: 'Europe/Rome',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return "Data non valida";
+    }
+}
+
+handler.help = ['unwarn @user [numero|all]'];
+handler.tags = ['group'];
+handler.command = /^(unwarn|delwarn|rimuoviwarn)$/i;
+handler.group = true;
+handler.admin = true;
+handler.botAdmin = true;
+
+export default handler;
+*/

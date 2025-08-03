@@ -1,0 +1,89 @@
+import os from 'os';
+import util from 'util';
+import sizeFormatter from 'human-readable';
+import MessageType from '@whiskeysockets/baileys';
+import fs from 'fs';
+import { performance } from 'perf_hooks';
+
+const handler = async (m, { conn, text, usedPrefix, isAdmin, isOwner }) => {
+    
+    const groupMetadata = await conn.groupMetadata(m.chat);
+    const groupOwner = groupMetadata.owner || m.chat.split('-')[0] + "@s.whatsapp.net";
+    const botOwner = global.owner[0] + "@s.whatsapp.net";
+
+        let userToMute = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted ? m.quoted.sender : text;
+        if (userToMute === groupOwner) {
+      throw "ⓘ 𝐈𝐥 𝐜𝐫𝐞𝐚𝐭𝐨𝐫𝐞 𝐝𝐞𝐥 𝐠𝐫𝐮𝐩𝐩𝐨 𝐧𝐨𝐧 𝐩𝐮𝐨' 𝐞𝐬𝐬𝐞𝐫𝐞 𝐦𝐮𝐭𝐚𝐭𝐨";
+    }
+
+    if (userToMute === botOwner) {
+      throw "ⓘ 𝐍𝐨𝐧 𝐩𝐮𝐨𝐢 𝐦𝐮𝐭𝐚𝐫𝐞 𝐥'𝐨𝐰𝐧𝐞𝐫 𝐝𝐞𝐥 𝐛𝐨𝐭";
+    }
+
+    if (userToMute === conn.user.jid) {
+      throw "ⓘ 𝐍𝐨𝐧 𝐩𝐮𝐨𝐢 𝐦𝐮𝐭𝐚𝐫𝐞 𝐢𝐥 𝐛𝐨𝐭";
+    }
+
+  const users = global.db.data.users;
+  if (!users[m.sender]) users[m.sender] = {};
+  if (typeof users[m.sender].joincount !== 'number') users[m.sender].joincount = 0;
+
+  const user = users[m.sender];
+    
+
+  if (!text || !text.includes('@')) {
+    return m.reply('⚠️ Formato del comando non valido! Utilizzo corretto: mutetime <durata> @user *(durata in m/h)*');
+  }
+
+  let durationText = '⛔ Durata non valida, specifica un tempo tra *1m* e *24h*';
+  let duration = 0;
+  const menzione = m.mentionedJid[0] || '';
+
+  if (!menzione) {
+    return m.reply('Non hai menzionato la vittima da mutare');
+  }
+
+  const timeInput = text.split(' ')[0].toLowerCase();
+  if (timeInput.endsWith('m')) {
+    duration = parseInt(timeInput) * 60 * 1000;
+    const minuteText = parseInt(timeInput) === 1 ? 'minuto' : 'minuti';
+    durationText = `🔇 *@${menzione.split`@`[0]}* starà zitto/a per *${parseInt(timeInput)}* ${minuteText}. Meno male, aveva rotto il cazzo 😮‍💨`;
+  } else if (timeInput.endsWith('h')) {
+    duration = parseInt(timeInput) * 60 * 60 * 1000;
+    const hourText = parseInt(timeInput) === 1 ? 'ora' : 'fottute ore';
+    durationText = `🔇 *@${menzione.split`@`[0]}* starà zitto/a per *${parseInt(timeInput)}* ${hourText}. Aveva proprio scassato i coglioni eh 🙄`;
+  }
+
+  if (duration >= 60000 && duration <= 86400000) {
+    if (!isAdmin && !isOwner) {
+      if (user.joincount < 1) {
+        return m.reply('❌ Non hai permessi per usare questo comando. Ottieni un joincount per poterlo usare.');
+      }
+      if (duration > 15 * 60 * 1000) {
+        return m.reply('⛔ Puoi mutare un utente per massimo 15 minuti con un joincount!');
+      }
+      user.joincount -= 1;
+    }
+
+    if (!users[menzione]) {
+      users[menzione] = {};
+    }
+    users[menzione].muto = true;
+
+    m.reply(durationText);
+
+    setTimeout(() => {
+      if (users[menzione] && users[menzione].muto) {
+        users[menzione].muto = false;
+        delete users[menzione].muteEndTime;
+        m.reply(`🔊 La punizione di *@${menzione.split`@`[0]}* è purtroppo finita. Adesso ricomincerà a rompere il cazzo...`);
+      }
+    }, duration);
+  } else {
+    m.reply(durationText);
+  }
+};
+
+handler.command = /^mutetime|setmuta|timermuta$/i;
+handler.admin = false;
+export default handler;

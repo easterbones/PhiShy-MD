@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishy - Combattimento Avanzato</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0f380f;
+            color: #e0f8d0;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 {
+            color: #f8d030;
+            text-shadow: 3px 3px 0 #c0a020;
+            margin-bottom: 20px;
+        }
+        
+        /* Selection Screen */
+        .selection-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .animal-card {
+            background-color: #306850;
+            border: 3px solid #e0f8d0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .animal-card:hover {
+            transform: translateY(-5px);
+            border-color: #f8d030;
+        }
+        .animal-card.selected {
+            border-color: #f8d030;
+            box-shadow: 0 0 15px #f8d030;
+        }
+        .stats { font-size: 10px; text-align: left; }
+        
+        /* Battle Arena */
+        .battle-arena {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            position: relative;
+            height: 300px;
+        }
+        .sprite-container {
+            width: 128px;
+            height: 128px;
+            overflow: hidden;
+            position: relative;
+        }
+        .sprite {
+            width: 512px;  /* 4 frames * 128px */
+            height: 60px;
+            background-repeat: no-repeat;
+            image-rendering: pixelated;
+            transform: scale(2);
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .enemy-sprite { transform: scale(2) scaleX(-1); }
+
+        /* Animazioni */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0) scale(2); }
+            25% { transform: translateX(-10px) scale(2); }
+            75% { transform: translateX(10px) scale(2); }
+        }
+        
+        .hurt-animation {
+            animation: shake 0.3s ease-in-out;
+        }
+        
+        @keyframes player-attack-move {
+            0% { transform: translateX(0) scale(2); }
+            50% { transform: translateX(50px) scale(2); }
+            100% { transform: translateX(0) scale(2); }
+        }
+        
+        @keyframes enemy-attack-move {
+            0% { transform: translateX(0) scale(2) scaleX(-1); }
+            50% { transform: translateX(-50px) scale(2) scaleX(-1); }
+            100% { transform: translateX(0) scale(2) scaleX(-1); }
+        }
+        
+        .player-attack-animation {
+            animation: player-attack-move 0.5s ease-in-out;
+        }
+        
+        .enemy-attack-animation {
+            animation: enemy-attack-move 0.5s ease-in-out;
+        }
+        
+        /* Health Bars */
+        .health-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .health-label {
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .health-bar {
+            width: 200px;
+            height: 20px;
+            background-color: #333;
+            border: 2px solid #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px auto;
+            position: relative;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background-color: #4caf50;
+            transition: width 0.5s;
+        }
+        
+        .health-fill.critical {
+            background-color: #ff0000;
+        }
+        
+        /* Damage Numbers */
+        .damage-number {
+            position: absolute;
+            color: #ff3333;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+            animation: float-up 1.5s forwards;
+            z-index: 100;
+        }
+        
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+        
+        /* Battle Controls */
+        .battle-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .battle-button {
+            background-color: #306850;
+            color: #e0f8d0;
+            border: 2px solid #e0f8d0;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+        }
+        .battle-button:hover {
+            background-color: #f8d030;
+            color: #0f380f;
+        }
+        .battle-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Battle Log */
+        .battle-log {
+            height: 100px;
+            overflow-y: auto;
+            margin: 10px auto;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-size: 12px;
+            text-align: left;
+        }
+        
+        /* Status Icons */
+        .status-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 5px 0;
+        }
+        .status-icon {
+            font-size: 16px;
+            filter: drop-shadow(2px 2px 0 #000);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>COMBATTIMENTO PIXEL</h1>
+        <div class="battle-log" id="battle-log"></div>
+        <div id="selection-screen">
+            <h2>Scegli il tuo animale!</h2>
+            <div class="selection-grid" id="animal-selection"></div>
+            <button id="confirm-selection" class="battle-button" disabled>CONFERMA</button>
+        </div>
+        <div id="battle-screen" style="display:none">
+            <h2 id="battle-title">BATTAGLIA</h2>
+            
+            <!-- Health bar del giocatore -->
+            <div class="health-container">
+                <div class="health-label" id="player-name">Giocatore</div>
+                <div class="health-bar">
+                    <div id="player-health-fill" class="health-fill" style="width: 100%"></div>
+                </div>
+                <div class="health-label" id="player-hp">HP: 100/100</div>
+                <div class="status-container" id="player-status"></div>
+            </div>
+            
+            <div class="battle-arena">
+                <div class="sprite-container">
+                    <div id="player-sprite" class="sprite"></div>
+                </div>
+                <div class="sprite-container">
+                    <div id="enemy-sprite" class="sprite enemy-sprite"></div>
+                </div>
+            </div>
+            
+            <!-- Health bar del nemico -->
+            <div class="health-container">
+                <div class="health-label" id="enemy-name">Nemico</div>
+                <div class="health-bar">
+                    <div id="enemy-health-fill" class="health-fill" style="width: 100%"></div>
+                </div>
+                <div class="health-label" id="enemy-hp">HP: 100/100</div>
+                <div class="status-container" id="enemy-status"></div>
+            </div>
+            
+            <div class="battle-controls" id="battle-controls">
+                <button class="battle-button" id="attack-btn">ATTACCO</button>
+                <button class="battle-button" id="defend-btn">DIFESA</button>
+                <button class="battle-button" id="special-btn">SPECIALE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const animals = {
+            cane: { 
+                name: 'CANE', 
+                emoji: '🐶',
+                stats: { 
+                    hp: 140, 
+                    maxHp: 140,
+                    attack: 35, 
+                    defense: 55, 
+                    speed: 60 
+                },
+                spriteFrames: {
+                    idle: { src: 'assets/Dog/Idle.png', frameWidth: 48, totalFrames: 4 },
+                    attack: { src: 'assets/Dog/Attack.png', frameWidth: 48, totalFrames: 4 },
+                    hurt: { src: 'assets/Dog/Hurt.png', frameWidth: 48, totalFrames: 2 },
+                    dead: { src: 'assets/Dog/Death.png', frameWidth: 48, totalFrames: 4 }
+                },
+                special: {
+                    name: 'MORSO POTENTE',
+                    emoji: '🦷',
+                    description: 'Danno potenziato',
+                    cooldown: 3
+                }
+            },
+            gatto: {
+                name: 'GATTO',
+                emoji: '🐱',
+                stats: {
+                    hp: 95,
+                    maxHp: 95,
+                    attack: 60,
+                    defense: 45,
+                    speed: 85
+                },
+                spriteFrames: {
+                    idle: { src: 'assets/Cat/Idle.png', frameWidth: 48, totalFrames: 4 },
+                    attack: { src: 'assets/Cat/Attack.png', frameWidth: 48, totalFrames: 4 },
+                    hurt: { src: 'assets/Cat/Hurt.png', frameWidth: 48, totalFrames: 2 },
+                    dead: { src: 'assets/Cat/Death.png', frameWidth: 48, totalFrames: 4 }
+                },
+                special: {
+                    name: 'GRAFFIO VELOCE',
+                    emoji: '😼',
+                    description: 'Danno e cura',
+                    cooldown: 3
+                }
+            }
+        };
+
+        class SpriteAnimator {
+            constructor(element, framesConfig) {
+                this.element = element;
+                this.framesConfig = framesConfig;
+                this.currentFrame = 0;
+                this.isPlaying = false;
+                this.animationInterval = null;
+                this.onComplete = null;
+                this.loop = true;
+                
+                // Carica l'immagine
+                this.element.style.backgroundImage = `url('${framesConfig.src}')`;
+                this.element.style.width = `${framesConfig.frameWidth}px`;
+                this.element.style.backgroundPosition = '0 0';
+            }
+
+            play(loop = true, onComplete = null) {
+                if (this.isPlaying) this.stop();
+                
+                this.loop = loop;
+                this.onComplete = onComplete;
+                this.isPlaying = true;
+                this.currentFrame = 0;
+                
+                this.animationInterval = setInterval(() => {
+                    this.currentFrame++;
+                    
+                    if (this.currentFrame >= this.framesConfig.totalFrames) {
+                        if (this.loop) {
+                            this.currentFrame = 0;
+                        } else {
+                            this.stop();
+                            if (this.onComplete) this.onComplete();
+                            return;
+                        }
+                    }
+                    
+                    this.element.style.backgroundPosition = `-${this.currentFrame * this.framesConfig.frameWidth}px 0`;
+                }, 150);
+            }
+
+            stop() {
+                if (this.animationInterval) {
+                    clearInterval(this.animationInterval);
+                    this.animationInterval = null;
+                }
+                this.isPlaying = false;
+            }
+            
+            reset() {
+                this.currentFrame = 0;
+                this.element.style.backgroundPosition = '0 0';
+            }
+        }
+
+        // Game State
+        const gameState = {
+            playerAnimal: null,
+            enemyAnimal: null,
+            playerAnimator: null,
+            enemyAnimator: null,
+            battleInProgress: false,
+            playerDefending: false,
+            enemyDefending: false,
+            playerSpecialUsed: false,
+            enemySpecialUsed: false,
+            playerSpecialCooldown: 0,
+            enemySpecialCooldown: 0,
+            currentTurn: 'player', // 'player' o 'enemy'
+            battleLog: [],
+            battleTurns: 0
+        };
+
+        // Inizializza il gioco
+        document.addEventListener('DOMContentLoaded', function() {
+            generateAnimalSelection();
+            
+            document.getElementById('confirm-selection').addEventListener('click', function() {
+                if (gameState.playerAnimal) {
+                    startBattle();
+                }
+            });
+            
+            // Event listener per i pulsanti di battaglia
+            document.getElementById('attack-btn').addEventListener('click', handlePlayerAttack);
+            document.getElementById('defend-btn').addEventListener('click', handlePlayerDefend);
+            document.getElementById('special-btn').addEventListener('click', handlePlayerSpecial);
+        });
+
+        // Genera la selezione degli animali
+        function generateAnimalSelection() {
+            const container = document.getElementById('animal-selection');
+            container.innerHTML = '';
+
+            for (const [id, animal] of Object.entries(animals)) {
+                const card = document.createElement('div');
+                card.className = 'animal-card';
+                card.dataset.animal = id;
+                card.innerHTML = `
+                    <h3>${animal.emoji} ${animal.name}</h3>
+                    <div class="stats">
+                        <div>❤️ HP: ${animal.stats.hp}</div>
+                        <div>⚔️ ATK: ${animal.stats.attack}</div>
+                        <div>🛡️ DEF: ${animal.stats.defense}</div>
+                        <div>💨 SPD: ${animal.stats.speed}</div>
+                    </div>
+                    <div style="margin-top:10px;font-size:10px">
+                        <strong>${animal.special.emoji} ${animal.special.name}:</strong> ${animal.special.description}
+                    </div>
+                `;
+
+                card.addEventListener('click', function() {
+                    document.querySelectorAll('.animal-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    gameState.playerAnimal = id;
+                    document.getElementById('confirm-selection').disabled = false;
+                });
+
+                container.appendChild(card);
+            }
+        }
+
+        // Inizia la battaglia
+        function startBattle() {
+            // Scegli un nemico casuale (diverso dal giocatore)
+            let enemyKeys = Object.keys(animals).filter(key => key !== gameState.playerAnimal);
+            gameState.enemyAnimal = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
+            
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('battle-screen').style.display = 'block';
+            
+            // Imposta il titolo della battaglia
+            const player = animals[gameState.playerAnimal];
+            const enemy = animals[gameState.enemyAnimal];
+            document.getElementById('battle-title').textContent = `${player.name} vs ${enemy.name}`;
+            
+            // Inizializza gli sprite
+            initSprites();
+            
+            // Aggiorna i nomi e gli HP
+            document.getElementById('player-name').textContent = `${player.emoji} ${player.name}`;
+            document.getElementById('enemy-name').textContent = `${enemy.emoji} ${enemy.name}`;
+            updateHP();
+            
+            // Inizia la battaglia
+            gameState.battleInProgress = true;
+            gameState.battleTurns = 0;
+            gameState.currentTurn = 'player';
+            
+            // Aggiungi al log di battaglia
+            addToBattleLog(`Inizia la battaglia tra ${player.name} e ${enemy.name}!`);
+            addToBattleLog(`È il tuo turno!`);
+        }
+
+        // Inizializza gli sprite
+        function initSprites() {
+            const playerSprite = document.getElementById('player-sprite');
+            const enemySprite = document.getElementById('enemy-sprite');
+            
+            // Cancella gli animator precedenti
+            if (gameState.playerAnimator) gameState.playerAnimator.stop();
+            if (gameState.enemyAnimator) gameState.enemyAnimator.stop();
+            
+            // Crea nuovi animator
+            gameState.playerAnimator = new SpriteAnimator(
+                playerSprite, 
+                animals[gameState.playerAnimal].spriteFrames.idle
+            );
+            
+            gameState.enemyAnimator = new SpriteAnimator(
+                enemySprite, 
+                animals[gameState.enemyAnimal].spriteFrames.idle
+            );
+            
+            // Avvia le animazioni di idle
+            gameState.playerAnimator.play();
+            gameState.enemyAnimator.play();
+        }
+
+        // Calcola il danno basato su attacco/difesa
+        function calculateDamage(attacker, defender, isSpecial = false) {
+            const attackerStats = animals[attacker].stats;
+            const defenderStats = animals[defender].stats;
+            
+            let damage = attackerStats.attack;
+            let defense = defenderStats.defense;
+            
+            // Modificatori per attacco speciale
+            if (isSpecial) damage *= 1.5;
+            
+            // Modificatore per difesa
+            if (defender === 'playerAnimal' && gameState.playerDefending) {
+                defense *= 1.5;
+            } else if (defender === 'enemyAnimal' && gameState.enemyDefending) {
+                defense *= 1.5;
+            }
+            
+            // Calcolo base del danno
+            damage = Math.floor(damage * (100 / (100 + defense)));
+            
+            // Aggiungi una variazione casuale del 10%
+            damage = Math.floor(damage * (0.9 + Math.random() * 0.2));
+            
+            return Math.max(1, damage); // Almeno 1 danno
+        }
+
+        // Esegui un attacco
+        function performAttack(attacker, defender, isSpecial = false) {
+            const attackerId = attacker === 'player' ? gameState.playerAnimal : gameState.enemyAnimal;
+            const defenderId = defender === 'player' ? gameState.playerAnimal : gameState.enemyAnimal;
+            
+            const damage = calculateDamage(attackerId, defenderId, isSpecial);
+            
+            // Applica il danno
+            animals[defenderId].stats.hp = Math.max(0, animals[defenderId].stats.hp - damage);
+            
+            // Mostra il numero del danno
+            showDamageNumber(defender, damage);
+            
+            // Aggiungi al log di battaglia
+            const attackerName = animals[attackerId].name;
+            const defenderName = animals[defenderId].name;
+            const specialText = isSpecial ? ` con ${animals[attackerId].special.name}` : '';
+            
+            addToBattleLog(`${attackerName} attacca${specialText} e infligge ${damage} danni a ${defenderName}!`);
+            
+            // Aggiorna l'interfaccia
+            updateHP();
+            
+            // Se è stato fatto un attacco speciale, imposta il cooldown
+            if (isSpecial) {
+                if (attacker === 'player') {
+                    gameState.playerSpecialCooldown = animals[attackerId].special.cooldown;
+                } else {
+                    gameState.enemySpecialCooldown = animals[attackerId].special.cooldown;
+                }
+            }
+            
+            return damage;
+        }
+
+        // Mostra il numero del danno
+        function showDamageNumber(target, damage) {
+            const arena = document.querySelector('.battle-arena');
+            const spriteContainer = target === 'player' ? 
+                arena.querySelector('.sprite-container:first-child') : 
+                arena.querySelector('.sprite-container:last-child');
+            
+            const damageElement = document.createElement('div');
+            damageElement.className = 'damage-number';
+            damageElement.textContent = `-${damage}`;
+            
+            // Posiziona l'elemento sulla sprite
+            const rect = spriteContainer.getBoundingClientRect();
+            const arenaRect = arena.getBoundingClientRect();
+            
+            damageElement.style.left = `${rect.left - arenaRect.left + rect.width / 2}px`;
+            damageElement.style.top = `${rect.top - arenaRect.top}px`;
+            
+            arena.appendChild(damageElement);
+            
+            // Rimuovi dopo l'animazione
+            setTimeout(() => {
+                damageElement.remove();
+            }, 1500);
+        }
+
+        // Aggiungi un messaggio al log
+        function addToBattleLog(message) {
+            gameState.battleLog.push(message);
+            
+            const battleLogElement = document.getElementById('battle-log');
+            battleLogElement.innerHTML = gameState.battleLog.slice(-5).join('<br>');
+            battleLogElement.scrollTop = battleLogElement.scrollHeight;
+        }
+
+        // Aggiorna le barre della vita
+        function updateHP() {
+            const player = animals[gameState.playerAnimal];
+            const enemy = animals[gameState.enemyAnimal];
+            
+            const playerHealthPercent = (player.stats.hp / player.stats.maxHp) * 100;
+            const enemyHealthPercent = (enemy.stats.hp / enemy.stats.maxHp) * 100;
+            
+            // Aggiorna la barra della salute del giocatore
+            const playerHealthFill = document.getElementById('player-health-fill');
+            playerHealthFill.style.width = `${playerHealthPercent}%`;
+            
+            // Aggiorna la barra della salute del nemico
+            const enemyHealthFill = document.getElementById('enemy-health-fill');
+            enemyHealthFill.style.width = `${enemyHealthPercent}%`;
+            
+            // Cambia il colore della barra quando è bassa
+            playerHealthFill.className = `health-fill ${playerHealthPercent <= 25 ? 'critical' : ''}`;
+            enemyHealthFill.className = `health-fill ${enemyHealthPercent <= 25 ? 'critical' : ''}`;
+            
+            // Aggiorna i valori HP
+            document.getElementById('player-hp').textContent = `HP: ${player.stats.hp}/${player.stats.maxHp}`;
+            document.getElementById('enemy-hp').textContent = `HP: ${enemy.stats.hp}/${enemy.stats.maxHp}`;
+            
+            // Aggiorna gli stati
+            updateStatusIcons();
+        }
+
+        // Aggiorna le icone di stato
+        function updateStatusIcons() {
+            const playerStatus = document.getElementById('player-status');
+            const enemyStatus = document.getElementById('enemy-status');
+            
+            playerStatus.innerHTML = '';
+            enemyStatus.innerHTML = '';
+            
+            // Stato di difesa
+            if (gameState.playerDefending) {
+                const defenseIcon = document.createElement('div');
+                defenseIcon.className = 'status-icon';
+                defenseIcon.innerHTML = '🛡️';
+                defenseIcon.title = 'In difesa';
+                playerStatus.appendChild(defenseIcon);
+            }
+            
+            if (gameState.enemyDefending) {
+                const defenseIcon = document.createElement('div');
+                defenseIcon.className = 'status-icon';
+                defenseIcon.innerHTML = '🛡️';
+                defenseIcon.title = 'In difesa';
+                enemyStatus.appendChild(defenseIcon);
+            }
+            
+            // Cooldown speciale
+            if (gameState.playerSpecialCooldown > 0) {
+                const cooldownIcon = document.createElement('div');
+                cooldownIcon.className = 'status-icon';
+                cooldownIcon.innerHTML = `🕒 ${gameState.playerSpecialCooldown}`;
+                cooldownIcon.title = 'Cooldown abilità speciale';
+                playerStatus.appendChild(cooldownIcon);
+            }
+            
+            if (gameState.enemySpecialCooldown > 0) {
+                const cooldownIcon = document.createElement('div');
+                cooldownIcon.className = 'status-icon';
+                cooldownIcon.innerHTML = `🕒 ${gameState.enemySpecialCooldown}`;
+                cooldownIcon.title = 'Cooldown abilità speciale';
+                enemyStatus.appendChild(cooldownIcon);
+            }
+        }
+
+        // Gestisci l'attacco del giocatore
+        function handlePlayerAttack() {
+            if (!gameState.battleInProgress || gameState.currentTurn !== 'player') return;
+            
+            // Disabilita i controlli durante l'animazione
+            setControlsEnabled(false);
+            
+            // Animazione di attacco
+            animateAttack('player', false, () => {
+                performAttack('player', 'enemy', false);
+                
+                // Controlla se il nemico è morto
+                if (animals[gameState.enemyAnimal].stats.hp <= 0) {
+                    animateDeath('enemy', () => {
+                        endBattle(true);
+                    });
+                } else {
+                    // Animazione di danno per il nemico
+                    animateHurt('enemy', () => {
+                        endTurn();
+                    });
+                }
+            });
+        }
+
+        // Gestisci la difesa del giocatore
+        function handlePlayerDefend() {
+            if (!gameState.battleInProgress || gameState.currentTurn !== 'player') return;
+            
+            gameState.playerDefending = true;
+            addToBattleLog(`${animals[gameState.playerAnimal].name} si mette in difesa!`);
+            updateStatusIcons();
+            
+            // Disabilita i controlli temporaneamente
+            setControlsEnabled(false);
+            
+            setTimeout(() => {
+                endTurn();
+            }, 1000);
+        }
+
+        // Gestisci l'attacco speciale del giocatore
+        function handlePlayerSpecial() {
+            if (!gameState.battleInProgress || gameState.currentTurn !== 'player') return;
+            if (gameState.playerSpecialCooldown > 0) {
+                addToBattleLog(`L'abilità speciale è in cooldown! (${gameState.playerSpecialCooldown} turni rimanenti)`);
+                return;
+            }
+            
+            // Disabilita i controlli durante l'animazione
+            setControlsEnabled(false);
+            
+            // Animazione di attacco speciale
+            animateAttack('player', true, () => {
+                performAttack('player', 'enemy', true);
+                
+                // Controlla se il nemico è morto
+                if (animals[gameState.enemyAnimal].stats.hp <= 0) {
+                    animateDeath('enemy', () => {
+                        endBattle(true);
+                    });
+                } else {
+                    // Animazione di danno per il nemico
+                    animateHurt('enemy', () => {
+                        endTurn();
+                    });
+                }
+            });
+        }
+
+            // Animazione di attacco
+          function animateAttack(attacker, isSpecial, callback) {
+        const spriteId = attacker === 'player' ? 'player-sprite' : 'enemy-sprite';
+        const sprite = document.getElementById(spriteId);
+        const animatorKey = attacker === 'player' ? 'playerAnimator' : 'enemyAnimator';
+        
+        // Ferma l'animazione idle
+        gameState[animatorKey].stop();
+        
+        // Aggiungi la classe di animazione CSS
+        sprite.classList.add(`${attacker}-attack-animation`);
+        
+        // Crea e avvia l'animatore per l'attacco
+        const attackConfig = animals[attacker === 'player' ? gameState.playerAnimal : gameState.enemyAnimal].spriteFrames.attack;
+        const attackAnimator = new SpriteAnimator(sprite, attackConfig);
+        attackAnimator.play(false, () => {
+            // Rimuovi la classe di animazione
+            sprite.classList.remove(`${attacker}-attack-animation`);
+            
+            // Ripristina l'animazione idle
+            gameState[animatorKey].play();
+            
+            if (callback) callback();
+        });
+        
+        // Effetto sonoro (semplice beep per ora)
+        const attackSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLHPO8tiJNwAZXrfq4Zg/BA1OovPurVEKBjiR7vq9XRACKXzl+ctlFQAgc9/w1nMcABBd1fPlfi0ADkqq8/bGdggMSqjs+cppEQIlfeH1w2UVAyla2e3hezsAF1Oy8/fTdhoBLHDg8cFqGgESU6fr+cxtGQIkdNb2xmYTAyla1vPieTgAElCu9PjUdRsB');
+        attackSound.volume = 0.2;
+        attackSound.play();
+      } // <-- Properly close the function here
+// <-- Questa parentesi chiude attackAnimator.play()
+// <-- Questa parentesi chiude la funzione animateAttack
+
+        // Animazione di danno
+        function animateHurt(target, callback) {
+            const spriteId = target === 'player' ? 'player-sprite' : 'enemy-sprite';
+            const sprite = document.getElementById(spriteId);
+            const animatorKey = target === 'player' ? 'playerAnimator' : 'enemyAnimator';
+            
+            // Ferma l'animazione idle
+            gameState[animatorKey].stop();
+            
+            // Aggiungi la classe di animazione CSS
+            sprite.classList.add('hurt-animation');
+            
+            // Crea e avvia l'animatore per il danno
+            const hurtConfig = animals[target === 'player' ? gameState.playerAnimal : gameState.enemyAnimal].spriteFrames.hurt;
+            const hurtAnimator = new SpriteAnimator(sprite, hurtConfig);
+            hurtAnimator.play(false, () => {
+                // Rimuovi la classe di animazione
+                sprite.classList.remove('hurt-animation');
+                
+                // Ripristina l'animazione idle
+                gameState[animatorKey].play();
+                
+                if (callback) callback();
+            });
+            
+            // Effetto sonoro di danno
+            const hurtSound = new Audio('data:audio/wav;base64,UklGRl9vAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...');
+            hurtSound.volume = 0.3;
+            hurtSound.play();
+        }
+
+        // Animazione di morte
+        function animateDeath(target, callback) {
+            const spriteId = target === 'player' ? 'player-sprite' : 'enemy-sprite';
+            const sprite = document.getElementById(spriteId);
+            const animatorKey = target === 'player' ? 'playerAnimator' : 'enemyAnimator';
+            
+            // Ferma l'animazione corrente
+            gameState[animatorKey].stop();
+            
+            // Crea e avvia l'animatore per la morte
+            const deathConfig = animals[target === 'player' ? gameState.playerAnimal : gameState.enemyAnimal].spriteFrames.dead;
+            const deathAnimator = new SpriteAnimator(sprite, deathConfig);
+            deathAnimator.play(false, () => {
+                if (callback) callback();
+            });
+            
+            // Effetto sonoro di morte
+            const deathSound = new Audio('data:audio/wav;base64,UklGRmBvAABXQVZFZm10IBAAAAABAAEARKwAAESsAAABAAgAZGF0YU...');
+            deathSound.volume = 0.3;
+            deathSound.play();
+        }
+
+        // Termina il turno corrente
+        function endTurn() {
+            gameState.battleTurns++;
+            
+            // Resetta lo stato di difesa
+            if (gameState.playerDefending) {
+                gameState.playerDefending = false;
+                updateStatusIcons();
+            }
+            
+            // Riduci i cooldown
+            if (gameState.playerSpecialCooldown > 0) {
+                gameState.playerSpecialCooldown--;
+                updateStatusIcons();
+            }
+            
+            // Cambia il turno
+            if (gameState.currentTurn === 'player') {
+                gameState.currentTurn = 'enemy';
+                addToBattleLog(`Turno del nemico!`);
+                
+                // Simula un breve ritardo prima dell'azione del nemico
+                setTimeout(handleEnemyTurn, 1000);
+            } else {
+                gameState.currentTurn = 'player';
+                addToBattleLog(`È il tuo turno!`);
+                
+                // Riabilita i controlli
+                setControlsEnabled(true);
+            }
+        }
+
+        // Gestisci il turno del nemico
+        function handleEnemyTurn() {
+            if (!gameState.battleInProgress || gameState.currentTurn !== 'enemy') return;
+            
+            const enemy = animals[gameState.enemyAnimal];
+            const player = animals[gameState.playerAnimal];
+            
+            // Semplice IA per il nemico
+            let action;
+            
+            // Se il nemico ha poca vita, potrebbe difendersi
+            if (enemy.stats.hp / enemy.stats.maxHp < 0.3 && !gameState.enemyDefending && Math.random() < 0.7) {
+                action = 'defend';
+            } 
+            // Se l'attacco speciale è disponibile e il giocatore ha abbastanza vita, usalo
+            else if (gameState.enemySpecialCooldown <= 0 && player.stats.hp / player.stats.maxHp > 0.5 && Math.random() < 0.6) {
+                action = 'special';
+            }
+            // Altrimenti attacca normalmente
+            else {
+                action = 'attack';
+            }
+            
+            switch (action) {
+                case 'attack':
+                    animateAttack('enemy', false, () => {
+                        performAttack('enemy', 'player', false);
+                        
+                        if (player.stats.hp <= 0) {
+                            animateDeath('player', () => {
+                                endBattle(false);
+                            });
+                        } else {
+                            animateHurt('player', () => {
+                                endTurn();
+                            });
+                        }
+                    });
+                    break;
+                    
+                case 'defend':
+                    gameState.enemyDefending = true;
+                    addToBattleLog(`${enemy.name} si mette in difesa!`);
+                    updateStatusIcons();
+                    
+                    setTimeout(() => {
+                        endTurn();
+                    }, 1000);
+                    break;
+                    
+                case 'special':
+                    animateAttack('enemy', true, () => {
+                        performAttack('enemy', 'player', true);
+                        
+                        if (player.stats.hp <= 0) {
+                            animateDeath('player', () => {
+                                endBattle(false);
+                            });
+                        } else {
+                            animateHurt('player', () => {
+                                endTurn();
+                            });
+                        }
+                    });
+                    break;
+            }
+        }
+
+        // Termina la battaglia
+        function endBattle(playerWon) {
+            gameState.battleInProgress = false;
+            
+            const player = animals[gameState.playerAnimal];
+            const enemy = animals[gameState.enemyAnimal];
+            
+            if (playerWon) {
+                addToBattleLog(`Hai sconfitto ${enemy.name}! Vittoria!`);
+            } else {
+                addToBattleLog(`${enemy.name} ti ha sconfitto! Sconfitta...`);
+            }
+            
+            // Disabilita i controlli
+            setControlsEnabled(false);
+            
+            // Mostra il pulsante per tornare alla selezione
+            const backButton = document.createElement('button');
+            backButton.className = 'battle-button';
+            backButton.textContent = 'TORNA ALLA SELEZIONE';
+            backButton.style.marginTop = '20px';
+            backButton.addEventListener('click', resetGame);
+            
+            document.getElementById('battle-controls').innerHTML = '';
+            document.getElementById('battle-controls').appendChild(backButton);
+        }
+
+        // Resetta il gioco
+        function resetGame() {
+            // Ripristina gli HP degli animali
+            Object.values(animals).forEach(animal => {
+                animal.stats.hp = animal.stats.maxHp;
+            });
+            
+            // Resetta lo stato del gioco
+            gameState.playerDefending = false;
+            gameState.enemyDefending = false;
+            gameState.playerSpecialCooldown = 0;
+            gameState.enemySpecialCooldown = 0;
+            gameState.battleLog = [];
+            gameState.currentTurn = 'player';
+            
+            // Mostra la schermata di selezione
+            document.getElementById('selection-screen').style.display = 'block';
+            document.getElementById('battle-screen').style.display = 'none';
+            
+            // Resetta la selezione
+            document.querySelectorAll('.animal-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('confirm-selection').disabled = true;
+            gameState.playerAnimal = null;
+            
+            // Pulisci il log di battaglia
+            document.getElementById('battle-log').innerHTML = '';
+        }
+
+        // Abilita/disabilita i controlli di battaglia
+        function setControlsEnabled(enabled) {
+            document.getElementById('attack-btn').disabled = !enabled;
+            document.getElementById('defend-btn').disabled = !enabled;
+            document.getElementById('special-btn').disabled = !enabled || gameState.playerSpecialCooldown > 0;
+        }
+    </script>
+</body>
+</html>

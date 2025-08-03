@@ -1,0 +1,150 @@
+{
+  "users": {
+    "393887920155@s.whatsapp.net": {
+      "nome": "Maty♡",
+      "genere": "f",
+      "anni": 13,
+      "registered": true,
+      "regTime": "2025-07-18T12:33:47.803Z",
+      "casa": {
+        "nome": "Tassorosso",
+        "punti": 0,
+        "joinDate": "2025-07-18T12:34:16.032Z"
+      },
+      "bacchetta": {
+        "nome": "Bacchetta di Agrifoglio",
+        "materiale": "Agrifoglio con nucleo di capello di Veela",
+        "lunghezza": "26 cm",
+        "flessibilità": "Medio-flessibile",
+        "rarita": "A+",
+        "potenza": 56,
+        "precisione": 46,
+        "affinità": 71,
+        "dataAssegnazione": "2025-07-18T12:34:11.276Z"
+      },
+      "incantesimi": [],
+      "score": 0,
+      "livello": 0,
+      "materie": {
+        "luce": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "difesa": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "attacco": {
+          "xp": 195,
+          "unlocked": [
+            "Expelliarmus"
+          ]
+        },
+        "movimento": {
+          "xp": 95,
+          "unlocked": []
+        },
+        "trasformazione": {
+          "xp": 381,
+          "unlocked": [
+            "Vera Verto",
+            "Draconifors"
+          ]
+        },
+        "cura": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "maledizioni": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "utilità": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "magiaNera": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "inventati": {
+          "xp": 0,
+          "unlocked": []
+        }
+      },
+      "lastStudy": 1753967044162
+    },
+    "393801335342@s.whatsapp.net": {
+      "nome": "filippo",
+      "genere": "m",
+      "anni": 14,
+      "registered": true,
+      "regTime": "2025-07-28T11:43:59.563Z",
+      "casa": {
+        "nome": "Tassorosso",
+        "punti": 0,
+        "joinDate": "2025-07-28T11:45:01.080Z"
+      },
+      "bacchetta": {
+        "nome": "Bacchetta di Salice",
+        "materiale": "Salice con nucleo di pelo di Unicorno",
+        "lunghezza": "28 cm",
+        "flessibilità": "Flessibile",
+        "rarita": "B",
+        "potenza": 35,
+        "precisione": 41,
+        "affinità": 59,
+        "dataAssegnazione": "2025-07-28T11:44:26.587Z"
+      },
+      "incantesimi": [],
+      "score": 0,
+      "livello": 0,
+      "materie": {
+        "luce": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "difesa": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "attacco": {
+          "xp": 57,
+          "unlocked": []
+        },
+        "movimento": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "trasformazione": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "cura": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "maledizioni": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "utilità": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "magiaNera": {
+          "xp": 0,
+          "unlocked": []
+        },
+        "inventati": {
+          "xp": 0,
+          "unlocked": []
+        }
+      },
+      "lastStudy": 1753703149990
+    }
+  },
+  "casate": {},
+  "battaglie": {},
+  "score": {}
+}

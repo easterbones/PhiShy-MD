@@ -1,0 +1,44 @@
+const handler = async (m, { conn }) => {
+    
+  // Controlla se il messaggio è inviato dal bot stesso
+  if (m.key.fromMe) return;
+
+  // Controlla se il bot è menzionato
+  const isBotMentioned = m.mentionedJid && m.mentionedJid.includes(conn.user.jid);
+  
+  // Controlla se il messaggio è una risposta al bot
+  const isReplyToBot = m.quoted && m.quoted.fromMe;
+
+   // Controlla se il bot è taggato in un gruppo
+  const isTaggedInGroup = m.isGroup && isBotMentioned;
+
+  // Se il bot non è menzionato, non è una risposta a un suo messaggio, e non è taggato in un gruppo, ignora
+  if (!isBotMentioned && !isReplyToBot && !isTaggedInGroup) return;
+  // Array di frasi casuali
+  const responses = [
+    "Zitta tu",
+    "Complimenti, hai detto una delle cose meno sensate di oggi!👏",
+    "Il premio 'maestro della banalità' è tuo! 🎉",
+    "Wow, sei proprio un alpha per dirmi di stare zitta♂️",
+    "Ogni volta che parli, un neurone muore. 💀",
+    "Ti prego, salva l'umanità e smettila di parlare. 🙏",
+    "Prendiamo la tua opinione con le pinze e la buttiamo nell'indifferenziato 🗑️",
+    "Parli più tu che il meteo in TV. 🌦️",
+    "'Zitta' Sei così scontato che ti vendono nei saldi. 🛒",
+    "Mi chiedo come sarebbe il mondo se smettessi di parlare... forse migliore? 🤔",
+    "Frustrato di merda",
+    "Zitta che sei la mia puttana"
+  ];
+
+  // Sceglie una risposta casuale
+  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+  // Risponde al messaggio
+  m.reply(randomResponse.trim(), null, { mentions: [m.sender] });
+};
+
+// Configurazione del comando
+handler.customPrefix = /zitta|zitto|muto|accir/i; // Attivazione solo se contiene "zitta"
+handler.command = new RegExp; // Nessun prefisso, si attiva leggendo i messaggi
+
+export default handler;

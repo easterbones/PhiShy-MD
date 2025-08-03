@@ -1,0 +1,99 @@
+import fetch from 'node-fetch';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
+
+const rwait = '⌚';
+const done = '📷';
+const rerror = '❌';
+
+var handler = async (m, { text, conn }) => {
+  // Verifica se è una menzione al bot o una risposta
+  const isMentioned = m.mentionedJid?.includes(conn.user.jid) || false;
+  const isReply = m.quoted?.sender === conn.user.jid || false;
+  
+  if (!text && !isMentioned && !isReply) {
+    return conn.reply(m.chat, `❀ Devi descrivere cosa vuoi generare come immagine.`, m, rcanal);
+  }
+  
+  try {
+    await m.react(rwait);
+    
+    // Se è una risposta, usa il testo del messaggio originale
+    const queryText = isReply ? m.quoted.text : text;
+    
+    // URL dell'API per la generazione di immagini - utilizzo la nuova API
+    const timestamp = Date.now();
+    const apiUrl = `https://apis-starlights-team.koyeb.app/starlight/txt-to-image2?text=${encodeURIComponent(queryText)}&_t=${timestamp}`;
+    console.log('Fetching from API URL:', apiUrl);
+    
+    // Ottieni la risposta JSON dall'API
+    const response = await fetch(apiUrl);
+    console.log('API response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`API ha risposto con status: ${response.status}`);
+    }
+    
+    // Converti la risposta in JSON
+    const responseData = await response.json();
+    console.log('API response data:', responseData);
+    
+    // Verifica che la risposta contenga l'URL dell'immagine
+    if (!responseData?.data?.image) {
+      throw new Error('L\'API non ha restituito un URL immagine valido');
+    }
+    
+    // Estrai l'URL dell'immagine dalla risposta
+    const imageUrl = responseData.data.image;
+    console.log('Image URL to download:', imageUrl);
+    
+    // Scarica l'immagine dall'URL fornito
+    const imageResponse = await fetch(imageUrl);
+    
+    if (!imageResponse.ok) {
+      throw new Error(`Impossibile scaricare l'immagine: ${imageResponse.status}`);
+    }
+    
+    // Ottieni i dati binari dell'immagine
+    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    
+    // Genera un nome file univoco
+    const fileName = `generated_image_${Date.now()}.jpg`;
+    const tempDir = 'tmp';
+    const filePath = join(tempDir, fileName);
+    
+    // Crea la cartella tmp se non esiste
+    if (!existsSync(tempDir)) {
+      await mkdir(tempDir, { recursive: true });
+      console.log('Cartella tmp creata');
+    }
+    
+    // Salva l'immagine temporaneamente
+    await writeFile(filePath, imageBuffer);
+    
+    // Invia l'immagine come media su WhatsApp
+    await conn.sendFile(
+      m.chat,
+      filePath,
+      fileName,
+      `✨ 𝘦𝘤𝘤𝘰 𝘭'𝘪𝘮𝘮𝘢𝘨𝘪𝘯𝘦`,
+      m, phishy
+    );
+    
+    await m.react(done);
+  } catch (error) {
+    console.error('Errore durante la generazione dell\'immagine:', error);
+    await m.react(rerror);
+    await conn.reply(m.chat, `✘ Si è verificato un errore durante la generazione dell'immagine: ${error.message}`, m, rcanal);
+  }
+};
+
+// Configurazione per attivarsi con:
+// 1. Menzioni (@nomebot)
+// 2. Risposte ai messaggi del bot
+// 3. Prefisso "genera"
+handler.customPrefix = /^(genera|immagine|disegna)/i;
+handler.command = new RegExp;
+handler.mentioned = true; // Risponde alle menzioni
+export default handler;

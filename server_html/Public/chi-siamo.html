@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Post - Gingin</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fad0c4, #ffdde1);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    input, textarea, button {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+    }
+    button {
+      background-color: #ff7eb9;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #ff559e;
+    }
+    #postForm {
+      display: none;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Entra come Admin</h2>
+  <button id="loginBtn">Verifica Password</button>
+
+  <div id="postForm">
+    <h3>Crea un nuovo Post</h3>
+    <input type="text" id="title" placeholder="Titolo del post" />
+    <textarea id="content" placeholder="Contenuto del post"></textarea>
+    <button id="savePostBtn">Salva Post</button>
+  </div>
+</div>
+
+<script>
+async function caricaDatabase() {
+  try {
+    const response = await fetch('database.json');
+    if (!response.ok) throw new Error('Errore caricamento database');
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Errore:', err);
+    alert('Impossibile caricare il database.');
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const db = await caricaDatabase();
+  const utente = db.users && db.users['393534409026@s.whatsapp.net'];
+  
+  if (!utente) {
+    alert('Utente non trovato.');
+    return;
+  }
+
+  const passwordCorretta = utente.messages;
+
+  const inputPassword = prompt('Inserisci la password (numero messaggi)');
+  
+  if (inputPassword == passwordCorretta) {
+    alert('Accesso riuscito!');
+    document.getElementById('loginBtn').style.display = 'none';
+    document.getElementById('postForm').style.display = 'block';
+  } else {
+    alert('Password sbagliata!');
+  }
+});
+
+document.getElementById('savePostBtn').addEventListener('click', () => {
+  const titolo = document.getElementById('title').value.trim();
+  const contenuto = document.getElementById('content').value.trim();
+
+  if (!titolo || !contenuto) {
+    alert('Compila tutti i campi!');
+    return;
+  }
+
+  const post = {
+    titolo: titolo,
+    contenuto: contenuto,
+    data: new Date().toLocaleString()
+  };
+
+  // Qui andrebbe salvato fisicamente nella cartella "gingin".
+  // Per ora simuliamo il salvataggio nel console.log:
+  console.log('Post salvato in gingin:', post);
+
+  alert('Post salvato! (Simulazione)');
+  document.getElementById('title').value = '';
+  document.getElementById('content').value = '';
+});
+</script>
+
+</body>
+</html>
