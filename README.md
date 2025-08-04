@@ -1,96 +1,104 @@
-# PhiShy-MD
+# Phishy-Fuck-U
 
-Un bot WhatsApp multi-funzionale con una vasta gamma di funzionalità per gruppi e chat private.
+<p align="center">
+  <a href="https://github.com/WhiskeySockets/Baileys" title="Baileys"><img src="https://img.shields.io/badge/baileys-5.0.0-red?style=for-the-badge&logo=github"></a>
+  <img src="https://img.shields.io/badge/node.js-v18.x-green?style=for-the-badge&logo=nodedotjs">
+  <a href="https://github.com/easterbones/phishy-fuck-u/stargazers"><img src="https://img.shields.io/github/stars/easterbones/phishy-fuck-u?color=yellow&style=for-the-badge"></a>
+  <a href="https://github.com/easterbones/phishy-fuck-u/forks"><img src="https://img.shields.io/github/forks/easterbones/phishy-fuck-u?color=cyan&style=for-the-badge"></a>
+  <a href="https://github.com/easterbones/phishy-fuck-u/issues"><img src="https://img.shields.io/github/issues/easterbones/phishy-fuck-u?color=blue&style=for-the-badge"></a>
+  <img src="https://komarev.com/ghpvc/?username=easterbones&repo=phishy-fuck-u&style=for-the-badge&color=brightgreen" alt="Visite al repository">
+</p>
 
-## 🚀 Caratteristiche
+---
 
-- Sistema RPG completo con economia, livelli e inventario
-- Giochi interattivi (blackjack, tris, slot machine, ecc.)
-- Strumenti di moderazione per gruppi
-- Generazione di sticker e meme
-- Integrazione AI per conversazioni intelligenti
-- Download da social media (TikTok, Instagram, ecc.)
-- Sistema di matrimonio e famiglia virtuale
-- Comandi vocali e sintesi vocale
-- Dashboard web per statistiche
+## 🤖 Che cos'è Phishy-Fuck-U?
 
-## 📋 Requisiti
+<p align="center">
+  <img src="https://media.giphy.com/media/3o7abldj0b3rxrZUxW/giphy.gif" alt="Bot in azione" width="400">
+</p>
 
-- Node.js v16 o superiore
-- WhatsApp account
-- Connessione internet stabile
+<div align="center">
+  <h3><span style="color: #ff5733; animation: pulse 1.5s infinite;">✨ Un bot WhatsApp multi-funzione potente e versatile! ✨</span></h3>
+</div>
 
-## 🛠️ Installazione
+Phishy-Fuck-U è un bot WhatsApp **multi-funzione** potente e versatile, basato sulla libreria **[whiskeysockets/baileys](https://github.com/WhiskeySockets/Baileys)**. Progettato per essere usato sia in chat private che in gruppi, offre un'ampia gamma di funzionalità: automazioni, giochi, strumenti di moderazione, utility, e molto altro. L'installazione è semplice e i plugin sono altamente personalizzabili.
 
-1. Clona il repository:
-```bash
-git clone https://github.com/easterbones/PhiShy-MD.git
-cd PhiShy-MD
-```
+---
 
-2. Installa le dipendenze:
-```bash
-npm install
-```
+## 🌟 Caratteristiche Principali
 
-3. **Problemi con Canvas (Windows)**:
-Se riscontri errori con canvas, prova:
-```bash
-# Opzione 1: Versione compatibile
-npm install canvas@2.11.2
+| Categoria | Descrizione e Funzioni |
+| :--- | :--- |
+| **🛡️ Moderazione** | Controllo completo del gruppo: `anti-link`, `anti-spam`, `anti-fake`, `anti-porn`, `filtro bestemmie`, `anti-trava`, `anti-temu`, `anti-voip`, e gestione di `admin/ban/kick`. |
+| **🎮 Giochi e Intrattenimento** | Mantieni i gruppi attivi con una vasta selezione di giochi: `blackjack`, `tictactoe`, `roulette russa`, `quiz`, `8ball`, `poker`, `indovinelli`, e `insulti random`. |
+| **🔧 Utility & Media** | Strumenti utili per ogni occasione: `download da YouTube/TikTok/Instagram/Pinterest`, `generazione QR`, `conversione file`, `sticker`, `text-to-speech`, `traduzioni`, `calcolatrice`, `ricerca immagini`. |
+| **📈 RPG ed Economia** | Un sistema RPG integrato per un'esperienza di gioco più profonda: `dungeon`, `livelli`, `XP`, `inventario`, `shop`, `ranking`, `missioni`, `portafoglio`, `banca`, `famiglia`, `animali virtuali`. |
+| **🤖 Intelligenza Artificiale** | Generazione di immagini tramite AI, risposte intelligenti, `effetti su immagini`, `avatar`, e molto altro. |
+| **📂 Gestione File e Backup** | Controllo totale sui tuoi dati: `upload/download Google Drive`, `cloud`, `backup`, `restore`, e gestione del database. |
 
-# Opzione 2: Ricompila da sorgente (richiede Visual Studio Build Tools)
-npm run install-canvas-win
-```
+<p align="center">
+  <img src="https://media.giphy.com/media/26AHONQ79FdWZhAI0/giphy.gif" alt="Funzionalità in azione" width="400">
+</p>
 
-**Su Linux/macOS**:
-```bash
-npm run install-canvas-linux
-```
+---
 
-4. Configura il bot:
-```bash
-node install.js
-```
+## ⚙️ Installazione (Passo dopo Passo)
 
-5. Avvia il bot:
-```bash
-npm start
-```
+### Prerequisiti
 
-## ⚠️ Risoluzione Problemi
+* **Node.js v18.x** (consigliato per la stabilità)
+* **[Git](https://git-scm.com/)** installato.
+* **[ffmpeg](https://ffmpeg.org/)** installato e configurato nel terminale.
+* Un account WhatsApp attivo.
 
-### Errore Canvas su Windows
-Se vedi errori tipo "canvas.node is not a valid Win32 application":
+### 🚀 Guida Rapida
 
-1. **Installa Visual Studio Build Tools 2022**
-2. **Installa Python 3.x**
-3. **Esegui**: `npm rebuild canvas`
-4. **Alternativa**: Alcuni comandi grafici non funzioneranno ma il bot sarà comunque operativo
+1.  **Clona il Repository**
+    ```bash
+    git clone https://github.com/easterbones/phishy-fuck-u.git
+    cd phishy-fuck-u
+    ```
 
-## 📱 Come usare
+2.  **Installa le Dipendenze**
+    ```bash
+    npm install
+    ```
 
-1. Scansiona il QR code con WhatsApp Web
-2. Il bot sarà attivo e risponderà ai comandi
-3. Usa `.menu` per vedere tutti i comandi disponibili
+3.  **Configura il Bot**
+    Apri il file `config.js` e personalizza le impostazioni principali come il prefisso, il numero del proprietario e le API key.
 
-## 🎮 Comandi principali
+4.  **Avvia il Bot**
+    ```bash
+    node .
+    ```
 
-- `.menu` - Mostra il menu principale
-- `.reg` - Registrati per usare le funzionalità RPG
-- `.perfil` - Visualizza il tuo profilo
-- `.shop` - Negozio virtuale
-- `.play` - Scarica musica
-- `.sticker` - Crea sticker
+5.  **Collega il tuo WhatsApp**
+    Segui le istruzioni a schermo per scansionare il **codice QR** o inserire il **codice a 8 cifre** per connettere il tuo account.
 
-## 🤝 Contributi
+<p align="center">
+  <img src="https://media.giphy.com/media/3o7abldj0b3rxrZUxW/giphy.gif" alt="Installazione" width="400">
+</p>
 
-I contributi sono benvenuti! Sentiti libero di aprire issue o pull request.
+---
 
-## 📄 Licenza
+## 🌐 Community e Contatti
 
-Questo progetto è sotto licenza MIT.
+<p align="center">
+  <img src="https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" alt="Contattaci" width="400">
+</p>
 
-## ⚠️ Disclaimer
+<div align="center">
+  <h3><span style="color: #33ccff; animation: bounce 2s infinite;">💬 Unisciti alla nostra community e condividi le tue idee! 💬</span></h3>
+</div>
 
-Questo bot è solo per scopi educativi. L'uso improprio è a tuo rischio e pericolo.
+Per supporto, domande o suggerimenti, apri una **[Issue](https://github.com/easterbones/phishy-fuck-u/issues)** su questo repository.
+
+---
+
+<p align="center">
+  <img src="https://media.giphy.com/media/xUPGcguWZHRC2HyBRS/giphy.gif" alt="Grazie" width="400">
+</p>
+
+<p align="center">
+  <span style="color: #ffcc00; animation: flash 1.5s infinite;">Realizzato con ❤️ da easterbones(https://github.com/easterbones)</span>
+</p>
