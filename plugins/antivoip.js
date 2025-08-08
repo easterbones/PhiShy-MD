@@ -250,22 +250,29 @@ export async function before(m, { conn }) {
 }
 
 async function executeBlock(conn, chatJid, userJid, number, groupName, isAdmin, groupMetadata, isBotAdmin) {
-  if (!isAdmin && isBotAdmin) {  
+  if (!isAdmin && isBotAdmin) {
     try {
+      // Verifica se il numero è già presente nel gruppo
+      const alreadyInGroup = groupMetadata?.participants?.some(p => p.id === userJid);
+      if (alreadyInGroup) {
+        console.warn(`❗ Utente ${number} è già nel gruppo, non invio messaggi falsi di blocco.`);
+        return; // Esci dalla funzione senza inviare messaggi
+      }
+
       // Nuovo metodo per ottenere il nome - SIMILE A PARTICIPANTSUPDATE
       const normalizeJid = (jid) => jid.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
       const normalizedJid = normalizeJid(userJid);
       const mention = '@' + normalizedJid.split('@')[0];
-      
+
       // Usiamo la menzione come nome (WhatsApp automaticamente risolve il nome)
-      const nickname = mention; 
-      
+      const nickname = mention;
+
       await conn.groupRequestParticipantsUpdate(chatJid, [userJid], 'reject');
       console.log(`☠️ VOIP BLOCCATO: ${number} (${nickname}) in "${groupName}"`);
-      
+
       // Salva il numero nel database JSON con il nickname
       manageVoipDatabase(number, groupName, nickname);
-      
+
       await conn.sendMessage(LOG_CHAT, {
         text: `*ATTENZIONE ADMIN*\n` +
               `*VOIP BLOCCATO*\n` +
@@ -286,12 +293,12 @@ async function executeBlock(conn, chatJid, userJid, number, groupName, isAdmin, 
           const normalizeJid = (jid) => jid.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
           const normalizedJid = normalizeJid(userJid);
           const mention = '@' + normalizedJid.split('@')[0];
-          
+
           await conn.groupParticipantsUpdate(chatJid, [userJid], 'remove');
           console.log(`☠️ VOIP BLOCCATO (fallback): ${number} (${mention}) in "${groupName}"`);
-          
+
           manageVoipDatabase(number, groupName, mention);
-          
+
           await conn.sendMessage(LOG_CHAT, {
             text: `*ATTENZIONE ADMIN*\n` +
                   `*VOIP BLOCCATO (fallback)*\n` +

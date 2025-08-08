@@ -18,7 +18,7 @@ import pino from 'pino';
 import {Boom} from '@hapi/boom';
 import {makeWASocket, protoType, serialize} from './lib/simple.js';
 import {Low} from 'lowdb';
-import {JSONFile} from 'lowdb/node';
+import {JSONFile} from 'lowdb';
 import CloudDBAdapter from './lib/cloudDBAdapter.js';
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js';
 import store from './lib/store.js';

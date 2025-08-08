@@ -70,21 +70,22 @@ let handler = async (m, { conn, usedPrefix }) => {
     let user2Pos = 0;
     let frames = [];
 
-    for (let i = 0; i < 15; i++) {
+    // Riduci il numero di frame a 6
+    for (let i = 0; i < 6; i++) {
         if (winner === 'user') {
-            userPos = Math.min(userPos + 1 + Math.random(), 15);
+            userPos = Math.min(userPos + 2 + Math.random(), 15);
             user2Pos = Math.min(user2Pos + Math.random(), 15);
         } else {
             userPos = Math.min(userPos + Math.random(), 15);
-            user2Pos = Math.min(user2Pos + 1 + Math.random(), 15);
+            user2Pos = Math.min(user2Pos + 2 + Math.random(), 15);
         }
         frames.push(createRaceTrack(Math.floor(userPos), Math.floor(user2Pos)));
     }
 
-    // Velocità aumentata (300ms invece di 400ms)
+    // Velocità aumentata (200ms invece di 300ms)
     for (let frame of frames) {
         await conn.sendMessage(m.chat, { text: frame, edit: key }, { quoted: m });
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
 
     if (vincitore === null) {

@@ -370,8 +370,6 @@ export async function handler(chatUpdate, opts = {}) {
                         hashBase64 = 'errore hash';
                     }
                 }
-                console.log(`[bansticker] SHA256 base64: ${hashBase64}`);
-                console.log(`[bansticker] SHA256 array: [${hashArray.join(',')}]`);
             }
             if (m.isGroup && isAdmin && isBotAdmin && m.mtype === 'stickerMessage' && m.quoted && m.msg && m.msg.fileSha256) {
                 let hashArray = [];
@@ -426,7 +424,7 @@ export async function handler(chatUpdate, opts = {}) {
                     // NON inviare errori agli owner se il messaggio è in privato
                     if (m.chat && !m.chat.endsWith('@g.us') && global.owner.some(([jid]) => jid === m.sender)) {
                         // Owner in privato: logga solo su console
-                        console.error('[SKIP ERROR TO OWNER IN PRIVATO]', e)
+                   //     console.error('[SKIP ERROR TO OWNER IN PRIVATO]', e)
                         continue
                     }
                     // if (typeof e === 'string') continue
@@ -556,7 +554,7 @@ let talkPlugins = [
 ]
 
 
-// Aggiunta debug per capire i valori
+/* Aggiunta debug per capire i valori
 console.log('Debug valori:', {
     chatId: m.chat,
     talkMode: talkMode,
@@ -565,7 +563,7 @@ console.log('Debug valori:', {
     isTalkPlugin: talkPlugins.includes(name)
 })
 // --- MICRO-INTERAZIONI PHISHY ---
-
+*/
 // Controlla se il nome del plugin è nella lista dei plugin permessi
 let isAllowedPlugin = allowedPlugins.includes(name)
 // Controlla se il plugin richiede talk attivato
@@ -578,7 +576,7 @@ if (talkMode === undefined) {
     console.log('talkMode era undefined, impostato a false', m.chat)
 }
 
-console.log('Plugin attivato:', name, 'Permesso:', isAllowedPlugin, 'Talk richiesto:', isTalkPlugin, 'Talk attivo:', talkMode)
+console.log('✅ Plugin attivato:', name,)
 
 // FIX: Prima verifichiamo se il plugin richiede talk e se talk è disattivato
 // Questo controllo deve essere eseguito PRIMA di quello del modoadmin
@@ -593,8 +591,7 @@ if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && !isAllowedPlu
     return
 }
 
-// Se passa entrambi i controlli, il plugin è permesso
-console.log('✅ Permesso:', name)
+
 
 
                 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { // Both Owner

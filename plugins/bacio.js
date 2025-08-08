@@ -18,6 +18,11 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
         return m.reply(`Menziona almeno una persona o rispondi a un messaggio per usare questo comando.`);
     }
 
+    if (!text && !m.mentionedJid.length && !m.quoted) {
+        console.log("[DEBUG] Nessun argomento fornito per il comando.");
+        return m.reply(`Devi menzionare una persona, rispondere a un messaggio o fornire un numero per usare questo comando.`);
+    }
+
     let baciati;
     if (who.length === 1) {
         baciati = [`@${m.sender.split('@')[0]}`, `@${who[0].split('@')[0]}`];
@@ -36,7 +41,6 @@ let handler = async (m, { conn, usedPrefix, command, text }) => {
 
     conn.sendMessage(m.chat, { react: { text: '💋', key: bacio.key }});
 };
-
-handler.customPrefix = /bacio|bacia/i;
-handler.command = new RegExp;
+handler.isGroup = true;
+handler.command = /bacio|bacia/i;
 export default handler;

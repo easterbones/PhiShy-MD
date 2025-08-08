@@ -3,7 +3,7 @@ async function terminaBattaglia(chat, vincitore) {
   if (chat.battaglia) {
     delete chat.battaglia
   }
-// ...existing code...
+}
 
 async function applicaEffettoVeleno(m, conn, battaglia, users) {
   if (battaglia.veleno && battaglia.veleno.turniRimanenti > 0) {
@@ -88,11 +88,11 @@ async function applicaEffettoRagnatela(m, conn, battaglia) {
       // Verifica se la battaglia è finita
       if (battaglia[`hp${bersaglio}`] <= 0) {
         return true; // Segnala la fine della battaglia
-      // ...existing code...
+      }
     }
   }
-  return false;
-// ...existing code...
+  return false
+}
 
 const scenari = [
   { nome: 'Foresta Magica', perk: 'velocita', malus: 'difesa', meteo: 'pioggia', effetto: (battaglia) => { battaglia.stats1.velocita += 10; battaglia.stats2.velocita += 10; } },
@@ -494,150 +494,146 @@ async function processaMossa(m, conn, mossa) {
           effettoAbilita = `🦔 RICCIO DIFENSIVO! Infligge ${dannoAbilita} danni, recupera ${curaRiccio} HP e aumenta difesa!`
           break
       }
-    }
-    // ...existing code...
-}
-      // Abilità speciali uniche
-      switch (animale) {
-        case 'cane':
-          // Potenziato in base alla statistica di attacco
-          dannoAbilita = Math.floor(15 + Math.random() * 20 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.5)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          effettoAbilita = `🦷 MORSO POTENTE! Infligge ${dannoAbilita} danni!`
-          break
+  // Abilità speciali uniche
+  switch (animale) {
+    case 'cane':
+      // Potenziato in base alla statistica di attacco
+      dannoAbilita = Math.floor(15 + Math.random() * 20 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.5)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      effettoAbilita = `🦷 MORSO POTENTE! Infligge ${dannoAbilita} danni!`
+      break
           
-        case 'serpente':
-          // Il veleno è più efficace e dura più a lungo
-          dannoAbilita = Math.floor(15 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.4)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          battaglia.veleno = {
-            bersaglio: difensore,
-            dannoPerTurno: Math.floor(8 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.15),
-            turniRimanenti: 3,
-            fonte: attaccante
-          }
-          effettoAbilita = `🐍 MORSO VELENOSO! Infligge ${dannoAbilita} danni + veleno per 3 turni!`
-          break
-          
-        // Nuovo animale: Scorpione
-        case 'scorpione':
-          dannoAbilita = Math.floor(12 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.3)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          battaglia.veleno = {
-            bersaglio: difensore,
-            dannoPerTurno: Math.floor(10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.2),
-            turniRimanenti: 4,
-            fonte: attaccante
-          }
-          effettoAbilita = `🦂 PUNGIGLIONE VELENOSO! Infligge ${dannoAbilita} danni + veleno potente per 4 turni!`
-          break
-          
-        case 'polpo':
-          // 60% di probabilità di accecare, modificato in base alla velocità
-          const probAccecamento = 0.4 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) / 500;
-          const accecato = Math.random() < probAccecamento;
-          
-          if (accecato) {
-            battaglia.accecato = {
-              bersaglio: difensore,
-              turniRimanenti: 2
-            };
-            effettoAbilita = `🦑 LANCIO DI INCHIOSTRO! L'avversario è accecato per 2 turni (50% di mancare gli attacchi)!`;
-          } else {
-            // Attacco multiplo più potente
-            const tentacoli = Math.floor(Math.random() * 3) + 2; // 2-4 colpi
-            let dannoTotale = 0;
-            
-            for (let i = 0; i < tentacoli; i++) {
-              const dannoTentacolo = Math.floor(4 + Math.random() * 8 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.1);
-              battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoTentacolo);
-              dannoTotale += dannoTentacolo;
-            }
-            
-            effettoAbilita = `🦑 ATTACCO MULTIPLO! ${tentacoli} colpi di tentacolo per ${dannoTotale} danni totali!`;
-          }
-          break;
-          
-        // Nuovo animale: Ragno  
-        case 'ragno':
-          const probIntrappolamento = 0.7; // 70% probabilità di intrappolare
-          if (Math.random() < probIntrappolamento) {
-            battaglia.intrappolato = {
-              bersaglio: difensore,
-              attaccante: attaccante === '1' ? battaglia.giocatore1 : battaglia.giocatore2
-            };
-            effettoAbilita = `🕸️ RAGNATELA! L'avversario è intrappolato! ${nomeGiocatore} mantiene il turno!`;
-            
-            // Il ragno mantiene il turno per un attacco predatorio
-            battaglia.turniExtra = (battaglia.turniExtra || 0) + 1;
-          } else {
-            // Se fallisce l'intrappolamento fa un danno base
-            dannoAbilita = Math.floor(10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.3);
-            battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita);
-            effettoAbilita = ` AVVERSARIO GRAVEMENTE FERITO, 🕷️Infligge ${dannoAbilita} danni!`;
-          }
-          break;
-          
-        case 'gatto':
-          // Il danno e la cura dipendono dalla velocità del gatto
-          dannoAbilita = Math.floor(10 + Math.random() * 10 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) * 0.2)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          let autoCura = Math.floor(8 + Math.random() * 5 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) * 0.1)
-          battaglia[`hp${attaccante}`] = Math.min(
-            attaccante === '1' ? battaglia.stats1.hp : battaglia.stats2.hp,
-            battaglia[`hp${attaccante}`] + autoCura
-          )
-          effettoAbilita = `😼 GRAFFIO VELOCE! Infligge ${dannoAbilita} danni e cura ${autoCura} HP!`
-          break
-          
-        case 'coniglio': {
-          // Probabilità di schivata aumentata in base alla velocità
-          let probabilitaBase = 0.6;
-          let bonusVelocita = (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) / 300;
-          let probabilitaSchivata = Math.min(0.9, probabilitaBase + bonusVelocita);
-          
-          if (Math.random() < probabilitaSchivata) {
-            effettoAbilita = `🐰 AGILITÀ! Schiva il prossimo attacco!`
-            battaglia.schivaProssimoAttacco = attaccante
-          } else {
-            effettoAbilita = `🐰 AGILITÀ! Nessun effetto questa volta...`
-          }
-          break
-        }
-          
-        case 'drago':
-          // Danno basato sull'attacco
-          dannoAbilita = Math.floor(20 + Math.random() * 15 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.6)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          effettoAbilita = `🐉 SOFFIO DI FUOCO! Infligge ${dannoAbilita} danni devastanti!`
-          break
-          
-        case 'cavallo':
-          // Calcio più potente e stordimento basato sulla forza
-          dannoAbilita = Math.floor(15 + Math.random() * 10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.4)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          effettoAbilita = `🐎 CALCIO POTENTE! Infligge ${dannoAbilita} danni e stordisce!`
-          battaglia.stordito = difensore
-          break
-          
-        case 'riccio':
-          // Migliorata in base alla difesa
-          dannoAbilita = Math.floor(10 + Math.random() * 8 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.3)
-          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-          
-          // Aumenta difesa e recupera HP
-          let curaRiccio = Math.floor(15 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.2)
-          battaglia[`hp${attaccante}`] = Math.min(
-            attaccante === '1' ? battaglia.stats1.hp : battaglia.stats2.hp,
-            battaglia[`hp${attaccante}`] + curaRiccio
-          )
-          
-
-          effettoAbilita = `🦔 RICCIO DIFENSIVO! Infligge ${dannoAbilita} danni, recupera ${curaRiccio} HP e aumenta difesa!`
-          break
-        }
-      // ...existing code...
+    case 'serpente':
+      // Il veleno è più efficace e dura più a lungo
+      dannoAbilita = Math.floor(15 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.4)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      battaglia.veleno = {
+        bersaglio: difensore,
+        dannoPerTurno: Math.floor(8 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.15),
+        turniRimanenti: 3,
+        fonte: attaccante
       }
+      effettoAbilita = `🐍 MORSO VELENOSO! Infligge ${dannoAbilita} danni + veleno per 3 turni!`
+      break
+          
+    // Nuovo animale: Scorpione
+    case 'scorpione':
+      dannoAbilita = Math.floor(12 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.3)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      battaglia.veleno = {
+        bersaglio: difensore,
+        dannoPerTurno: Math.floor(10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.2),
+        turniRimanenti: 4,
+        fonte: attaccante
+      }
+      effettoAbilita = `🦂 PUNGIGLIONE VELENOSO! Infligge ${dannoAbilita} danni + veleno potente per 4 turni!`
+      break
+          
+    case 'polpo':
+      // 60% di probabilità di accecare, modificato in base alla velocità
+      const probAccecamento = 0.4 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) / 500;
+      const accecato = Math.random() < probAccecamento;
+          
+      if (accecato) {
+        battaglia.accecato = {
+          bersaglio: difensore,
+          turniRimanenti: 2
+        };
+        effettoAbilita = `🦑 LANCIO DI INCHIOSTRO! L'avversario è accecato per 2 turni (50% di mancare gli attacchi)!`;
+      } else {
+        // Attacco multiplo più potente
+        const tentacoli = Math.floor(Math.random() * 3) + 2; // 2-4 colpi
+        let dannoTotale = 0;
+            
+        for (let i = 0; i < tentacoli; i++) {
+          const dannoTentacolo = Math.floor(4 + Math.random() * 8 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.1);
+          battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoTentacolo);
+          dannoTotale += dannoTentacolo;
+        }
+            
+        effettoAbilita = `🦑 ATTACCO MULTIPLO! ${tentacoli} colpi di tentacolo per ${dannoTotale} danni totali!`;
+      }
+      break;
+          
+    // Nuovo animale: Ragno  
+    case 'ragno':
+      const probIntrappolamento = 0.7; // 70% probabilità di intrappolare
+      if (Math.random() < probIntrappolamento) {
+        battaglia.intrappolato = {
+          bersaglio: difensore,
+          attaccante: attaccante === '1' ? battaglia.giocatore1 : battaglia.giocatore2
+        };
+        effettoAbilita = `🕸️ RAGNATELA! L'avversario è intrappolato! ${nomeGiocatore} mantiene il turno!`;
+            
+        // Il ragno mantiene il turno per un attacco predatorio
+        battaglia.turniExtra = (battaglia.turniExtra || 0) + 1;
+      } else {
+        // Se fallisce l'intrappolamento fa un danno base
+        dannoAbilita = Math.floor(10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.3);
+        battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita);
+        effettoAbilita = ` AVVERSARIO GRAVEMENTE FERITO, 🕷️Infligge ${dannoAbilita} danni!`;
+      }
+      break;
+          
+    case 'gatto':
+      // Il danno e la cura dipendono dalla velocità del gatto
+      dannoAbilita = Math.floor(10 + Math.random() * 10 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) * 0.2)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      let autoCura = Math.floor(8 + Math.random() * 5 + (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) * 0.1)
+      battaglia[`hp${attaccante}`] = Math.min(
+        attaccante === '1' ? battaglia.stats1.hp : battaglia.stats2.hp,
+        battaglia[`hp${attaccante}`] + autoCura
+      )
+      effettoAbilita = `😼 GRAFFIO VELOCE! Infligge ${dannoAbilita} danni e cura ${autoCura} HP!`
+      break
+          
+    case 'coniglio': {
+      // Probabilità di schivata aumentata in base alla velocità
+      let probabilitaBase = 0.6;
+      let bonusVelocita = (attaccante === '1' ? battaglia.stats1.velocita : battaglia.stats2.velocita) / 300;
+      let probabilitaSchivata = Math.min(0.9, probabilitaBase + bonusVelocita);
+          
+      if (Math.random() < probabilitaSchivata) {
+        effettoAbilita = `🐰 AGILITÀ! Schiva il prossimo attacco!`
+        battaglia.schivaProssimoAttacco = attaccante
+      } else {
+        effettoAbilita = `🐰 AGILITÀ! Nessun effetto questa volta...`
+      }
+      break
+    }
+          
+    case 'drago':
+      // Danno basato sull'attacco
+      dannoAbilita = Math.floor(20 + Math.random() * 15 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.6)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      effettoAbilita = `🐉 SOFFIO DI FUOCO! Infligge ${dannoAbilita} danni devastanti!`
+      break
+          
+    case 'cavallo':
+      // Calcio più potente e stordimento basato sulla forza
+      dannoAbilita = Math.floor(15 + Math.random() * 10 + (attaccante === '1' ? battaglia.stats1.attacco : battaglia.stats2.attacco) * 0.4)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      effettoAbilita = `🐎 CALCIO POTENTE! Infligge ${dannoAbilita} danni e stordisce!`
+      battaglia.stordito = difensore
+      break
+          
+    case 'riccio':
+      // Migliorata in base alla difesa
+      dannoAbilita = Math.floor(10 + Math.random() * 8 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.3)
+      battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
+      
+      // Aumenta difesa e recupera HP
+      let curaRiccio = Math.floor(15 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.2)
+      battaglia[`hp${attaccante}`] = Math.min(
+        attaccante === '1' ? battaglia.stats1.hp : battaglia.stats2.hp,
+        battaglia[`hp${attaccante}`] + curaRiccio
+      )
+      
+
+      effettoAbilita = `🦔 RICCIO DIFENSIVO! Infligge ${dannoAbilita} danni, recupera ${curaRiccio} HP e aumenta difesa!`
+      break
+    }
+  }
 
   // Controllo fine battaglia
   if (battaglia.hp1 <= 0 || battaglia.hp2 <= 0) {
@@ -731,8 +727,6 @@ ${listaAnimali}`
 }
 
 // Aggiungi informazioni di aiuto per i nuovi comandi
-
-// Move handler config and export after handler definition
 
 // Move handler config and export after handler definition
 handler.command = /^combatti|sfida|termina|fine$/i;
