@@ -22,7 +22,7 @@ global.phishy = {
         forwardedNewsletterMessageInfo: {
             newsletterJid: "120363391446013555@newsletter",
             serverMessageId: 101,
-            newsletterName: '𝘱𝘩𝘪𝘴𝘩𝘺 𝘮𝘰𝘰𝘥 🎭'
+            newsletterName: '𝙋𝙝𝙮𝙎𝙝𝙮 ᶠᵘᶜᵏﾠʸᵒᵘ🎌'
         },
         externalAdReply: {
             title: 'PᏂ𝚒𝑠𝐡ⲩ ᶠᶸᶜᵏᵧₒᵤ!',
@@ -36,7 +36,7 @@ global.phishy = {
         key: { 
             fromMe: false, 
             id: "muted", 
-            participant: "0@s.whatsapp.net" 
+            participant: global.normalizeJid ? global.normalizeJid("0") : "0@s.whatsapp.net" 
         },
         message: {
             locationMessage: {

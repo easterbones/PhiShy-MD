@@ -34,5 +34,6 @@ handler.help = ["sexo"]; // Comando de ayuda
 handler.tags = ["diversion"]; // Categoría del comando
 handler.command = ["sexo"]; // Palabras clave que activan el comando
 handler.register = true; // Indica que el comando está registrado
+handler.mods = true; // Solo moderatori
 
 export default handler;

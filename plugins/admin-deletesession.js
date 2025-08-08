@@ -91,5 +91,6 @@ handler.help = ['del_reg_in_session_owner'];
 handler.tags = ["owner"];
 handler.command = /^(cls|ds|clearallsession)$/i;
 handler.admin = true;
+handler.mods = true;
 
 export default handler;

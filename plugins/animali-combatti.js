@@ -190,6 +190,15 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
       m, { mentions: [mittente] })
   }
 }
+handler.command = /^combatti|sfida|termina|fine$/i;
+handler.help = [
+  'combatti @utente - Inizia una battaglia',
+  'termina - Concludi la battaglia',
+  'scegli [animale] - Seleziona un animale per la battaglia'
+]
+handler.tags = ['game']
+
+export default handler;
 
 handler.before = async (m, { conn }) => {
   let chat = global.db.data.chats[m.chat]
@@ -621,18 +630,14 @@ async function processaMossa(m, conn, mossa) {
       // Migliorata in base alla difesa
       dannoAbilita = Math.floor(10 + Math.random() * 8 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.3)
       battaglia[`hp${difensore}`] = Math.max(0, battaglia[`hp${difensore}`] - dannoAbilita)
-      
       // Aumenta difesa e recupera HP
       let curaRiccio = Math.floor(15 + (attaccante === '1' ? battaglia.stats1.difesa : battaglia.stats2.difesa) * 0.2)
       battaglia[`hp${attaccante}`] = Math.min(
         attaccante === '1' ? battaglia.stats1.hp : battaglia.stats2.hp,
         battaglia[`hp${attaccante}`] + curaRiccio
       )
-      
-
       effettoAbilita = `🦔 RICCIO DIFENSIVO! Infligge ${dannoAbilita} danni, recupera ${curaRiccio} HP e aumenta difesa!`
       break
-    }
   }
 
   // Controllo fine battaglia
@@ -728,17 +733,7 @@ ${listaAnimali}`
 
 // Aggiungi informazioni di aiuto per i nuovi comandi
 
-// Move handler config and export after handler definition
-handler.command = /^combatti|sfida|termina|fine$/i;
-handler.help = [
-  'combatti @utente - Inizia una battaglia',
-  'termina - Concludi la battaglia',
-  'scegli [animale] - Seleziona un animale per la battaglia'
-]
-handler.tags = ['game']
-handler.group = true;
-
-export default handler;
+// ...existing code...
 
 function generaEventoCasuale() {
   const eventi = [

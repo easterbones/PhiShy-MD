@@ -1,4 +1,21 @@
-import { googleImage } from '@bochilteam/scraper'
+import axios from 'axios'
+import cheerio from 'cheerio'
+
+async function googleImageScraper(query) {
+  const url = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`
+  const { data } = await axios.get(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0'
+    }
+  })
+  const $ = cheerio.load(data)
+  const images = []
+  $('img').each((i, el) => {
+    const src = $(el).attr('src')
+    if (src && src.startsWith('http')) images.push(src)
+  })
+  return images
+}
 
 var handler = async (m, { conn, text, usedPrefix, command }) => {
 
@@ -30,8 +47,9 @@ if (!text) {
   return conn.reply(m.chat, `> ⓘ 𝐔𝐬𝐨 𝐝𝐞𝐥 𝐜𝐨𝐦𝐚𝐧𝐝𝐨:\n> ${usedPrefix + command} gatto`, m)
 }
 
-const res = await googleImage(text)
-let image = res.getRandom()
+const res = await googleImageScraper(text)
+if (!res.length) return conn.reply(m.chat, '❌ Nessuna immagine trovata.', m)
+let image = res[Math.floor(Math.random() * res.length)]
 let link = image
 
 conn.sendFile(m.chat, link, 'errore.jpg', `🔍 𝐈𝐦𝐦𝐚𝐠𝐢𝐧𝐞: ${text}`, m, rcanal)

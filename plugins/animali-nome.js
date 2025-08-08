@@ -107,5 +107,6 @@ const handler = async (m, { args }) => {
 handler.help = ['nomina <animale> <nome>'];
 handler.tags = ['fun'];
 handler.command = ['nomina', 'nomanimale', 'rinomina'];
+handler.mods = true;
 
 export default handler;

@@ -1,5 +1,17 @@
 import fetch from 'node-fetch';
-import translate from 'translate-google';
+import translate from '@vitalets/google-translate-api';
+
+
+async function traduciTesto(text, lang = 'it') {
+  try {
+    let result = await translate(`${text}`, { to: lang, autoCorrect: true });
+    return result.text;
+  } catch (err) {
+    console.error('[TRADUCI TESTO] Errore:', err);
+    // fallback: nessuna traduzione
+    return text;
+  }
+}
 
 let handler = async (m) => {
   try {
@@ -10,13 +22,18 @@ let handler = async (m) => {
     const data = await res.json();
     const battutaOriginale = data.joke;
     console.log('[BATTUTA] Originale:', battutaOriginale);
-
-    const tradotta = await translate(battutaOriginale, { to: 'it' });
+    let tradotta;
+    try {
+      tradotta = await traduciTesto(battutaOriginale, 'it');
+    } catch (err) {
+      console.error('[BATTUTA] Errore traduzione:', err);
+      tradotta = battutaOriginale;
+    }
+    console.log('[BATTUTA] Tradotta:', tradotta);
     console.log('[BATTUTA] Tradotta:', tradotta);
 
     let messaggio = `🧠 *Battuta Geek:*\n\n_${tradotta}_`;
-
-    m.reply(messaggio);
+    await m.reply(messaggio);
 
   } catch (e) {
     console.error('[BATTUTA] Errore:', e);
@@ -24,5 +41,6 @@ let handler = async (m) => {
   }
 };
 
-handler.command = /^battuta$/i;
+const BATTUTA_COMMAND_REGEX = /^battuta$/i;
+handler.command = BATTUTA_COMMAND_REGEX;
 export default handler;

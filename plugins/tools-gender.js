@@ -1,12 +1,11 @@
 import { webp2png } from '../lib/webp2mp4.js'
 import * as faceapi from 'face-api.js'
-import * as canvas from 'canvas'
+import { Canvas, Image, ImageData, loadImage } from 'skia-canvas'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// Configurazione canvas
-const { Canvas, Image, ImageData } = canvas
+// Configurazione skia-canvas
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData })
 
 // Percorso modelli
@@ -76,9 +75,14 @@ let handler = async (m, { conn, usedPrefix, command }) => {
     fs.writeFileSync(tempFile, buffer)
 
     // Analizza l'immagine
-    const img = await canvas.loadImage(tempFile)
+    const loadedImg = await loadImage(tempFile)
+    // Crea un canvas con le dimensioni dell'immagine
+    const tempCanvas = new Canvas(loadedImg.width, loadedImg.height)
+    const ctx = tempCanvas.getContext('2d')
+    ctx.drawImage(loadedImg, 0, 0, loadedImg.width, loadedImg.height)
+    // Passa il canvas a face-api.js
     const detections = await faceapi
-      .detectAllFaces(img)
+      .detectAllFaces(tempCanvas)
       .withFaceLandmarks()
       .withAgeAndGender()
       .withFaceExpressions()

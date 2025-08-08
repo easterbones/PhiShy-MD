@@ -108,5 +108,6 @@ handler.help = [
   'feed <animale> - Alias per cibo'
 ]
 handler.register = true
+handler.mods = true;
 
 export default handler

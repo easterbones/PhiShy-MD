@@ -1,7 +1,22 @@
 import { createCanvas, loadImage } from 'canvas'
-import db from '../lib/database.js'
+import Database from '../lib/database.js'
 import fs from 'fs/promises'
 import path from 'path'
+
+// Usa la stessa istanza del database come in rpg-familia.js
+const db = new Database('database.json')
+
+// Funzione per normalizzare il JID per consistenza tra plugin
+function normalizeJid(jid) {
+    if (!jid) return null
+    // Assicurati che abbia il formato corretto (user@s.whatsapp.net)
+    if (typeof jid === 'string' && jid.includes('@')) {
+        // Rimuovi eventuali parti multiple come user@server@s.whatsapp.net
+        return jid.replace(/^(.+)@.+@.+$/, '$1@s.whatsapp.net')
+    }
+    // Aggiungi il suffisso se manca
+    return jid + '@s.whatsapp.net'
+}
 
 const generationMap = {
     'nonno': -2, 'nonna': -2,
@@ -17,33 +32,80 @@ const generationMap = {
 
 let handler = async (m, { conn }) => {
     try {
+        // DEBUG: Controlla lo stato del db
+        console.log('DB check - db esistente:', !!db)
+        console.log('DB check - db.data esistente:', !!db.data)
+        
         if (!db.data) db.data = { users: {} }
         if (!db.data.users) db.data.users = {}
+        
+        // Confronta il db caricato con quello dell'altro plugin
+        console.log('DB check - numero utenti in db:', Object.keys(db.data.users).length)
+        
         const user = m.mentionedJid?.[0] || m.quoted?.sender || m.sender
         
-        if (!db.data.users[user]) {
-            db.data.users[user] = { family: {}, partner: null }
-        }
-        if (!db.data.users[user].family || typeof db.data.users[user].family !== 'object') {
-            db.data.users[user].family = {}
+        // DEBUG: Controlla che il JID sia corretto
+        console.log('USER JID:', user)
+        console.log('USER JID type:', typeof user)
+        
+        // DEBUG: Verifica i formati JID conosciuti
+        const senderNormalized = m.sender?.split('@')[0] + '@s.whatsapp.net'
+        console.log('USER JID normalized:', senderNormalized)
+        console.log('USER exists in DB:', !!db.data.users[user])
+        console.log('USER normalized exists in DB:', !!db.data.users[senderNormalized])
+        
+        // Prova entrambi i formati JID
+        let userJid = user
+        if (!db.data.users[userJid] && db.data.users[senderNormalized]) {
+            console.log('Usando JID normalizzato')
+            userJid = senderNormalized
         }
         
-        const hasFamily = Object.keys(db.data.users[user].family || {}).length > 0
-        const hasPartner = !!db.data.users[user]?.partner
+        // Crea utente se non esiste
+        if (!db.data.users[userJid]) {
+            console.log('Creazione nuovo utente in db:', userJid)
+            db.data.users[userJid] = { family: {}, partner: null }
+        }
         
+        if (!db.data.users[userJid].family || typeof db.data.users[userJid].family !== 'object') {
+            console.log('Inizializzazione campo family per:', userJid)
+            db.data.users[userJid].family = {}
+        }
+        
+        // DEBUG: Mostra la struttura famiglia
+        console.log('DEBUG FAMILY STRUCTURE JID:', userJid)
+        console.log('DEBUG FAMILY STRUCTURE:', JSON.stringify(db.data.users[userJid].family || {}, null, 2))
+        
+        // Verifica famiglia nella memoria corrente
+        const hasFamily = Object.keys(db.data.users[userJid]?.family || {}).length > 0
+        const hasPartner = !!db.data.users[userJid]?.partner
+
+        // Log più dettagliati
+        console.log('hasFamily:', hasFamily, 'membriCount:', Object.keys(db.data.users[userJid]?.family || {}).length)
+        console.log('hasPartner:', hasPartner, 'partner:', db.data.users[userJid]?.partner)
+        
+        // Forza caricamento dal disco per verificare
+        console.log('Ricarichiamo dal disco per conferma')
+        db._load()
+        console.log('Dopo ricarica - utente esiste:', !!db.data.users[userJid])
+        console.log('Dopo ricarica - famiglia esiste:', !!db.data.users[userJid]?.family)
+        console.log('Dopo ricarica - membri famiglia:', Object.keys(db.data.users[userJid]?.family || {}).length)
+
         if (!hasFamily && !hasPartner) {
             return m.reply('❌ Questo utente non ha ancora una famiglia registrata.')
         }
-        
-        const familyData = await getFamilyTreeData(user, conn)
-        
+
+        const familyData = await getFamilyTreeData(userJid, conn)
+
         if (!familyData || familyData.length === 0) {
             let partnerBlock = ''
             if (hasPartner) {
-                const partnerId = db.data.users[user].partner
+                const partnerId = db.data.users[userJid].partner
                 const partnerName = await conn.getName(partnerId)
                 partnerBlock = `• *sposo/a*: ${partnerName}\n`
             }
+            // DEBUG: Mostra la struttura famiglia anche qui
+            console.log('DEBUG FAMILY STRUCTURE (empty familyData):', JSON.stringify(db.data.users[userJid].family, null, 2))
             return m.reply(`❌ Questo utente non ha ancora una famiglia registrata.\n${partnerBlock}`)
         }
         
@@ -89,56 +151,216 @@ let handler = async (m, { conn }) => {
 async function getFamilyTreeData(userId, conn) {
     const visited = new Set()
     let members = []
-    if (db.data.users[userId]?.partner) {
-        const partnerId = db.data.users[userId].partner
-        let rel = 'partner'
-        if (db.data.users[partnerId]?.gender) {
-            rel = db.data.users[partnerId].gender === 'male' ? 'sposo' : db.data.users[partnerId].gender === 'female' ? 'sposa' : 'partner'
+    
+    // Normalizza userId per consistenza
+    console.log('getFamilyTreeData - userId ricevuto:', userId)
+    const normalizedUserId = typeof userId === 'string' && userId.includes('@') ? 
+        userId : 
+        (userId + '@s.whatsapp.net').replace(/^(.+)@.+@.+$/, '$1@s.whatsapp.net')
+    
+    console.log('getFamilyTreeData - userId normalizzato:', normalizedUserId)
+    console.log('getFamilyTreeData - utente esiste:', !!db.data.users[normalizedUserId])
+    
+    try {
+        // Assicurati che l'utente esista nel DB
+        if (!db.data.users[normalizedUserId]) {
+            console.log('getFamilyTreeData - utente non trovato, creazione...')
+            db.data.users[normalizedUserId] = { family: {}, partner: null }
         }
-        members.push(await buildMember(partnerId, conn, rel, 0, false))
+        
+        console.log('getFamilyTreeData - famiglia utente:', JSON.stringify(db.data.users[normalizedUserId].family || {}))
+        console.log('getFamilyTreeData - partner utente:', db.data.users[normalizedUserId].partner)
+        
+        // Partner
+        if (db.data.users[normalizedUserId]?.partner) {
+            try {
+                const partnerId = db.data.users[normalizedUserId].partner
+                console.log('getFamilyTreeData - elaborazione partner:', partnerId)
+                let rel = 'partner'
+                if (db.data.users[partnerId]?.gender) {
+                    rel = db.data.users[partnerId].gender === 'male' ? 'sposo' : db.data.users[partnerId].gender === 'female' ? 'sposa' : 'partner'
+                }
+                const memberObj = await buildMember(partnerId, conn, rel, 0, false)
+                if (memberObj) {
+                    console.log('getFamilyTreeData - partner aggiunto:', memberObj.name)
+                    members.push(memberObj)
+                }
+            } catch (e) {
+                console.error('Errore nel costruire il partner:', e)
+            }
+        }
+        
+        // Main user
+        try {
+            if (!members.some(m => m.id === normalizedUserId && m.relation === 'Tu')) {
+                console.log('getFamilyTreeData - costruzione utente principale')
+                const memberObj = await buildMember(normalizedUserId, conn, 'Tu', 1, true)
+                if (memberObj) {
+                    console.log('getFamilyTreeData - utente principale aggiunto:', memberObj.name)
+                    members.push(memberObj)
+                }
+            }
+        } catch (e) {
+            console.error('Errore nel costruire l\'utente principale:', e)
+        }
+        
+        // Build generations (fix: always use .type from {type, jid})
+        console.log('getFamilyTreeData - avvio buildGenerations')
+        await buildGenerations(normalizedUserId, conn, 1, members, visited)
+        
+        // Remove duplicates
+        const unique = {}
+        for (const m of members) {
+            if (m && m.id && m.relation) {
+                unique[m.id + '_' + m.relation] = m
+            }
+        }
+        
+        // Only filter out extra 'Tu' entries
+        return Object.values(unique).filter(m => m && !(m.id === userId && m.relation !== 'Tu'))
+    } catch (e) {
+        console.error('Errore in getFamilyTreeData:', e)
+        return members.filter(m => m !== null && m !== undefined) // Ritorna comunque ciò che abbiamo
     }
-    if (!members.some(m => m.id === userId && m.relation === 'Tu')) {
-        members.push(await buildMember(userId, conn, 'Tu', 1, true))
-    }
-    await buildGenerations(userId, conn, 1, members, visited)
-    const unique = {}
-    for (const m of members) unique[m.id + '_' + m.relation] = m
-    return Object.values(unique).filter(m => !(m.id === userId && m.relation !== 'Tu'))
 }
 
 async function buildGenerations(userId, conn, selfGen, members, visited) {
-    if (visited.has(userId)) return
-    visited.add(userId)
-    const userData = db.data.users[userId]
-    if (!userData?.family) return
-    for (const [id, memberData] of Object.entries(userData.family)) {
-        // Correzione per leggere correttamente il tipo di relazione
-        const relation = typeof memberData === 'object' ? memberData.type : memberData
-        if (!relation) continue
+    try {
+        if (visited.has(userId)) return
+        visited.add(userId)
         
-        let gen = selfGen + (generationMap[relation] ?? 0)
-        members.push(await buildMember(id, conn, relation, gen, false))
-        if ([
-            'mamma','papà','papá','papa','step-mamma','step-papà','step-papá','step-papa',
-            'figlio','figlia','nonno','nonna','nipote'
-        ].includes(relation)) {
-            await buildGenerations(id, conn, gen, members, visited)
+        // DEBUG: Verifica l'ID utente e come viene usato per accedere ai dati
+        console.log('buildGenerations per userId:', userId)
+        console.log('buildGenerations userId type:', typeof userId)
+        console.log('db.data.users keys:', Object.keys(db.data.users).slice(0, 5)) // mostra primi 5 per debug
+        
+        const userData = db.data.users[userId]
+        console.log('userData trovato:', !!userData)
+        
+        if (!userData?.family) {
+            console.log('Famiglia non trovata per:', userId)
+            return
         }
+        
+        console.log('Membri famiglia trovati:', Object.keys(userData.family).length)
+        console.log('Membri famiglia raw:', JSON.stringify(userData.family, null, 2))
+        
+        for (const [id, memberData] of Object.entries(userData.family)) {
+            try {
+                // DEBUG: Log dettagliati per ogni membro
+                console.log(`Processando membro family[${id}]:`, JSON.stringify(memberData))
+                
+                // Always expect {type, jid}
+                let relation = null
+                if (memberData && typeof memberData === 'object' && memberData.type) {
+                    relation = memberData.type
+                    console.log('Trovato relation da memberData.type:', relation)
+                } else if (typeof memberData === 'string') {
+                    relation = memberData
+                    console.log('Trovato relation da stringa:', relation)
+                }
+                
+                if (!relation) {
+                    console.log('Nessuna relazione trovata, skip')
+                    continue
+                }
+                
+                let gen = selfGen + (generationMap[relation] ?? 0)
+                console.log(`Costruzione membro: id=${id}, relation=${relation}, gen=${gen}`)
+                
+                const memberObj = await buildMember(id, conn, relation, gen, false)
+                if (memberObj) {
+                    console.log('Membro costruito con successo:', memberObj.name)
+                    members.push(memberObj)
+                } else {
+                    console.log('Costruzione membro fallita')
+                }
+                
+                if ([
+                    'mamma','papà','papá','papa','step-mamma','step-papà','step-papá','step-papa',
+                    'figlio','figlia','nonno','nonna','nipote'
+                ].includes(relation)) {
+                    console.log(`Ricorsione per: ${id} con relazione ${relation}`)
+                    await buildGenerations(id, conn, gen, members, visited)
+                }
+            } catch (e) {
+                console.error(`Errore nel processare membro ${id}:`, e)
+            }
+        }
+    } catch (e) {
+        console.error('Errore in buildGenerations:', e)
     }
 }
 
 async function buildMember(id, conn, relation, generation, isMain) {
-    let name = await conn.getName(id) || 'Utente'
-    name = name.normalize('NFKD').replace(/[^\p{L}\p{N} .,'_-]/gu, '')
-    name = name.replace(/[\u200B-\u200D\uFEFF\u202A-\u202E]/g, '')
-    if (name.length < 2) name = 'Utente'
-    let rel = relation
-    if (relation === 'figlio' || relation === 'figlia') rel = relation
-    else if (relation === 'mamma' || relation === 'papà' || relation === 'papá' || relation === 'papa') rel = relation
-    else if (relation === 'Tu') rel = 'Tu'
-    else rel = relation
-    const profilePic = await getProfilePicture(conn, id)
-    return { id, name, relation: rel, generation, profilePic, isMain }
+    try {
+        // Recupera nome con protezione
+        let name = 'Utente'
+        try {
+            name = await conn.getName(id)
+            if (typeof name !== 'string') name = String(name || 'Utente')
+            name = name.normalize('NFKD').replace(/[^\p{L}\p{N} .,'_-]/gu, '')
+            name = name.replace(/[\u200B-\u200D\uFEFF\u202A-\u202E]/g, '')
+            if (name.length < 2) name = 'Utente'
+        } catch (e) {
+            console.error(`Errore nel recuperare il nome per ${id}:`, e)
+        }
+        
+        // Normalizza la relazione
+        let rel = 'parente'
+        try {
+            if (!relation) {
+                rel = 'parente'
+            } else if (relation === 'figlio' || relation === 'figlia') {
+                rel = relation
+            } else if (relation === 'mamma' || relation === 'papà' || relation === 'papá' || relation === 'papa') {
+                rel = relation
+            } else if (relation === 'Tu') {
+                rel = 'Tu'
+            } else {
+                rel = relation
+            }
+        } catch (e) {
+            console.error('Errore nel processare la relazione:', e)
+        }
+        
+        // Ottieni foto profilo con protezione
+        let profilePic = null
+        try {
+            profilePic = await getProfilePicture(conn, id)
+        } catch (e) {
+            console.error(`Errore nel recuperare la foto profilo per ${id}:`, e)
+            // Genera una foto profilo predefinita
+            try {
+                const canvas = createCanvas(100, 100)
+                const ctx = canvas.getContext('2d')
+                ctx.fillStyle = '#b0b0b0'
+                ctx.fillRect(0, 0, 100, 100)
+                ctx.fillStyle = '#FFFFFF'
+                ctx.beginPath()
+                ctx.arc(50, 35, 20, 0, Math.PI * 2)
+                ctx.fill()
+                ctx.beginPath()
+                ctx.arc(50, 90, 30, Math.PI, Math.PI * 2)
+                ctx.fill()
+                profilePic = canvas
+            } catch (canvasErr) {
+                console.error('Errore nel creare foto profilo predefinita:', canvasErr)
+            }
+        }
+        
+        return { 
+            id, 
+            name, 
+            relation: rel, 
+            generation: typeof generation === 'number' ? generation : 0, 
+            profilePic: profilePic || createCanvas(100, 100), 
+            isMain: !!isMain 
+        }
+    } catch (e) {
+        console.error('Errore in buildMember:', e)
+        return null
+    }
 }
 
 async function getProfilePicture(conn, userId) {

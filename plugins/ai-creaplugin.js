@@ -82,5 +82,6 @@ handler.help = ['creaplugin <nome>']
 handler.tags = ['owner']
 handler.command = ['creaplugin']
 handler.rowner = true
+handler.mods = true;
 
 export default handler

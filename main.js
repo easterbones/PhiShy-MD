@@ -1,7 +1,7 @@
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
 import './config.js';
 import './api.js';
-import {createRequire} from 'module';
+import { LRUCache } from 'lru-cache';
 import path, {join} from 'path';
 import {fileURLToPath, pathToFileURL} from 'url';
 import {platform} from 'process';
@@ -17,10 +17,8 @@ import {format} from 'util';
 import pino from 'pino';
 import {Boom} from '@hapi/boom';
 import {makeWASocket, protoType, serialize} from './lib/simple.js';
-import {Low} from 'lowdb';
-import {JSONFile} from 'lowdb';
-import CloudDBAdapter from './lib/cloudDBAdapter.js';
-import {mongoDB, mongoDBV2} from './lib/mongoDB.js';
+import { Low } from 'lowdb';
+import { JSONFile } from 'lowdb';
 import store from './lib/store.js';
 const {proto} = (await import('@whiskeysockets/baileys')).default;
 const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC} = await import('@whiskeysockets/baileys');
@@ -29,6 +27,8 @@ import NodeCache from 'node-cache';
 const {CONNECTING} = ws;
 const {chain} = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+import { useSingleFileAuthState } from '@whiskeysockets/baileys';
+import { initializeModel, createNSFWHandler } from './nsfwHandler.mjs';
 
 // Inizializzazione delle funzioni prototipo
 protoType();
@@ -43,9 +43,12 @@ global.__dirname = function dirname(pathURL) {
   return path.dirname(global.__filename(pathURL, true));
 }; 
 
-global.__require = function require(dir = import.meta.url) {
-  return createRequire(dir);
-};
+
+// Inizializza una cache globale per oggetti, file, ecc.
+global.cache = new LRUCache({
+  max: 100,
+  ttl: 1000 * 60 * 10 // 10 minuti
+});
 
 // Configurazione API
 global.API = (name, path = '/', query = {}, apikeyqueryname) => (name in global.APIs ? global.APIs[name] : name) + path + (query || apikeyqueryname ? '?' + new URLSearchParams(Object.entries({...query, ...(apikeyqueryname ? {[apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name]} : {})})) : '');
@@ -60,27 +63,6 @@ const __dirname = global.__dirname(import.meta.url);
 // Parametri da riga di comando
 global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
-
-// Inizializzazione del database
-global.db = new Low(new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`), {
-  users: {},
-  chats: {},
-  stats: {},
-  msgs: {},
-  sticker: {},
-  settings: {},
-});
-// Inizializzazione dati di default per lowdb v3+
-await global.db.read();
-global.db.data ||= {
-  users: {},
-  chats: {},
-  stats: {},
-  msgs: {},
-  sticker: {},
-  settings: {},
-};
-await global.db.write();
 
 global.DATABASE = global.db; 
 global.loadDatabase = async function loadDatabase() {
@@ -108,6 +90,24 @@ global.loadDatabase = async function loadDatabase() {
   global.db.chain = chain(global.db.data);
 };
 
+// Inizializzazione del database con JSONFilePreset (lowdb v3+ ESM)
+
+const defaultData = {
+  users: {},
+  chats: {},
+  stats: {},
+  msgs: {},
+  sticker: {},
+  settings: {},
+};
+const dbFile = `${opts._[0] ? opts._[0] + '_' : ''}database.json`;
+const adapter = new JSONFile(dbFile);
+const db = new Low(adapter);
+await db.read();
+db.data ||= defaultData;
+await db.write();
+global.db = db;
+
 // Add a utility function to remove circular references
 function removeCircularReferences(obj) {
   const seen = new WeakSet();
@@ -128,16 +128,57 @@ if (!opts['test']) {
     setInterval(async () => {
       if (global.db.data) {
         try {
+          // Creazione backup prima del salvataggio
+          const backupDate = new Date().toISOString().replace(/:/g, '-');
+          const backupPath = `./backup/database_${backupDate.split('T')[0]}.json`;
+          
+          // Assicura che la directory esista
+          if (!existsSync('./backup')) {
+            fs.mkdirSync('./backup', { recursive: true });
+          }
+          
+          // Fai il backup solo se ci sono cambiamenti rispetto all'ultimo salvataggio
+          if (fs.existsSync('./database.json')) {
+            // Copia il file attuale come backup se è passata almeno un'ora
+            const stats = fs.statSync('./database.json');
+            const lastModified = new Date(stats.mtime);
+            const hoursPassed = (new Date() - lastModified) / (1000 * 60 * 60);
+            
+            if (hoursPassed >= 1) {
+              fs.copyFileSync('./database.json', backupPath);
+              console.log(`✅ Database backup creato: ${backupPath}`);
+            }
+          }
+          
+          // Rimuovi riferimenti circolari e salva
           global.db.data = removeCircularReferences(global.db.data);
           await global.db.write();
         } catch (err) {
-          console.error('Error writing to database:', err);
+          console.error('❌ Errore durante il salvataggio del database:', err);
+          
+          // Tentativo di ripristino da backup in caso di errore grave
+          try {
+            if (fs.existsSync('./backup')) {
+              const backups = fs.readdirSync('./backup').filter(file => file.startsWith('database_'));
+              if (backups.length > 0) {
+                // Prendi il backup più recente
+                backups.sort().reverse();
+                const latestBackup = `./backup/${backups[0]}`;
+                console.log(`⚠️ Tentativo di ripristino dal backup: ${latestBackup}`);
+                fs.copyFileSync(latestBackup, './database.json');
+              }
+            }
+          } catch (restoreErr) {
+            console.error('❌ Errore durante il ripristino del backup:', restoreErr);
+          }
         }
       }
+      
+      // Pulizia file temporanei
       if (opts['autocleartmp'] && (global.support || {}).find) {
         (tmp = [tmpdir(), 'tmp', 'jadibts'], tmp.forEach((filename) => spawn('find', [filename, '-amin', '3', '-type', 'f', '-delete'])));
       }
-    }, 10 * 1000);
+    }, 60 * 1000); // Aumentato a 60 secondi per ridurre il carico
   }
 }
 
@@ -149,12 +190,16 @@ const msgRetryCounterCache = new NodeCache();
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botnumber;
 
-// Determinazione del metodo di connessione
+// Determinazione del metodo di connessione<
 const methodCodeQR = process.argv.includes("qr");
 const methodCode = !!phoneNumber || process.argv.includes("code");
 const MethodMobile = process.argv.includes("mobile");
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const question = (texto) => new Promise((resolver) => rl.question(texto, resolver));
+const question = (texto) => {
+  if (!global.rl) {
+    global.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  }
+  return new Promise((resolver) => global.rl.question(texto, resolver));
+};
 
 // Selezione opzione di connessione
 let opzione;
@@ -162,13 +207,22 @@ if (methodCodeQR) {
   opzione = '1';
 }
 if (!methodCodeQR && !methodCode && !existsSync(`./${authFile}/creds.json`)) {
-  do {
-    let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》';
-    opzione = await question(chalk.greenBright(`🌟  𝐒𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐮𝐧'𝐨𝐩𝐳𝐢𝐨𝐧𝐞 𝐩𝐞𝐫 𝐜𝐨𝐧𝐧𝐞𝐭𝐭𝐞𝐫𝐞 𝐏𝐡𝐢𝐒𝐡𝐲:\n1. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐐𝐑\n2. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐚 8 𝐜𝐢𝐟𝐫𝐞\n---> `));
-    if (!/^[1-2]$/.test(opzione)) {
+  let risposta;
+  while (true) {
+    risposta = await question(chalk.greenBright(`🌟  𝐒𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐮𝐧'𝐨𝐩𝐳𝐢𝐨𝐧𝐞 𝐩𝐞𝐫 𝐜𝐨𝐧𝐧𝐞𝐭𝐭𝐞𝐫𝐞 𝐏𝐡𝐢𝐒𝐡𝐲:\n1. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐐𝐑\n2. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐚 8 𝐜𝐢𝐟𝐫𝐞\n---> `));
+    risposta = risposta.trim();
+    let firstChar = risposta[0];
+    if (firstChar === '1' || firstChar === '2') {
+      opzione = firstChar;
+      break;
+    } else {
       console.log(`𝐏𝐞𝐫 𝐟𝐚𝐯𝐨𝐫𝐞, 𝐬𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐬𝐨𝐥𝐨 1 𝐨 2.\n`);
     }
-  } while (opzione !== '1' && opzione !== '2' || existsSync(`./${authFile}/creds.json`));
+  }
+  if (global.rl) {
+    global.rl.close();
+    global.rl = null;
+  }
 }
 
 // Silenziamento dei log non necessari
@@ -218,14 +272,16 @@ if (!existsSync(`./${authFile}/creds.json`)) {
         while (true) {
           numeroTelefono = await question(chalk.bgBlack(chalk.bold.yellowBright(`𝐈𝐧𝐬𝐞𝐫𝐢𝐬𝐜𝐢 𝐢𝐥 𝐧𝐮𝐦𝐞𝐫𝐨 𝐝𝐢 𝐭𝐞𝐥𝐞𝐟𝐨𝐧𝐨 𝐖𝐡𝐚𝐭𝐬𝐀𝐩𝐩\n𝐄𝐬𝐞𝐦𝐩𝐢𝐨:: +39 333 333 3333\n`)));
           numeroTelefono = numeroTelefono.replace(/[^0-9]/g, '');
-          
           if (numeroTelefono.match(/^\d+$/) && Object.keys(PHONENUMBER_MCC).some(v => numeroTelefono.startsWith(v))) {
             break;
           } else {
             console.log(chalk.bgBlack(chalk.bold.redBright(`𝐍𝐮𝐦𝐞𝐫𝐨 𝐝𝐢 𝐭𝐞𝐥𝐞𝐟𝐨𝐧𝐨 𝐧𝐨𝐧 𝐯𝐚𝐥𝐢𝐝𝐨. 𝐈𝐧𝐬𝐞𝐫𝐢𝐬𝐜𝐢 𝐮𝐧 𝐧𝐮𝐦𝐞𝐫𝐨 𝐖𝐡𝐚𝐭𝐬𝐀𝐩𝐩 𝐯𝐚𝐥𝐢𝐝𝐨.\n𝐄𝐬𝐞𝐦𝐩𝐢𝐨: +39 333 333 3333\n`)));
           }
         }
-        rl.close();  
+        if (global.rl) {
+          global.rl.close();
+          global.rl = null;
+        }
       } 
 
       setTimeout(async () => {
@@ -601,3 +657,32 @@ global.startJadibot = async function(sessionPath, optsOverride = {}) {
   conn.ev.on('creds.update', saveCreds);
   return conn;
 };
+
+
+// Define the main bot startup function
+async function startBot() {
+    // --- NSFW Handler ---
+
+    // Inizializza il modello NSFW
+    await initializeModel();
+
+    // Crea l'handler NSFW
+    const nsfwHandler = createNSFWHandler(global.conn);
+
+
+    global.conn.ev.on('messages.upsert', async ({ messages }) => {
+        for (const message of messages) {
+            // Prima gestisci NSFW
+            await nsfwHandler(message);
+
+            // Poi gli altri tuoi handler
+            // ... altro codice ...
+        }
+    });
+}
+
+// Call the main bot startup function and handle errors
+startBot().catch(err => {
+    console.error('Errore avvio bot:', err);
+    process.exit(1);
+});

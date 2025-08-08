@@ -13,6 +13,8 @@ const  MAX_MONEY = 1000000; // 1 milione
 const MAX_JOINCOUNT = 30; // Massimo di 30 crediti
 const MAX_VITA = 3; // Massimo di 3 vite/scudi
 import antirubaCheck from './plugins/antiadmin.js'; // <-- AGGIUNGI QUESTO IMPORT
+import { saveMessageToAIChat } from './lib/ai_help.js';
+import { initializeModel, createNSFWHandler } from './antiporno.mjs';
 /**
  * @type {import('@whiskeysockets/baileys')}
  */
@@ -83,6 +85,10 @@ export async function handler(chatUpdate, opts = {}) {
         if (!m) return;
         m.exp = 0
         m.money = false
+        // Salva ogni messaggio testuale nel contesto AI
+        if (m.text && typeof m.text === 'string' && m.chat) {
+            saveMessageToAIChat(m.chat, m.text);
+        }
         try {
             // TODO: use loop to insert data instead of this
             let user = global.db.data.users[m.sender]
@@ -341,7 +347,8 @@ export async function handler(chatUpdate, opts = {}) {
         const isAdmin = isRAdmin || user?.admin == 'admin' || false // Is User Admin?
         const isBotAdmin = bot?.admin || false // Are you Admin?
 
-        // --- INIZIO LOGICA BANSTICKER ---
+
+          // --- INIZIO LOGICA BANSTICKER ---
         try {
             if (m.mtype === 'stickerMessage') {
                 let hashBase64 = 'n/a';
@@ -370,6 +377,8 @@ export async function handler(chatUpdate, opts = {}) {
                         hashBase64 = 'errore hash';
                     }
                 }
+                console.log(`[bansticker] SHA256 base64: ${hashBase64}`);
+                console.log(`[bansticker] SHA256 array: [${hashArray.join(',')}]`);
             }
             if (m.isGroup && isAdmin && isBotAdmin && m.mtype === 'stickerMessage' && m.quoted && m.msg && m.msg.fileSha256) {
                 let hashArray = [];
@@ -424,7 +433,7 @@ export async function handler(chatUpdate, opts = {}) {
                     // NON inviare errori agli owner se il messaggio è in privato
                     if (m.chat && !m.chat.endsWith('@g.us') && global.owner.some(([jid]) => jid === m.sender)) {
                         // Owner in privato: logga solo su console
-                   //     console.error('[SKIP ERROR TO OWNER IN PRIVATO]', e)
+                        console.error('[SKIP ERROR TO OWNER IN PRIVATO]', e)
                         continue
                     }
                     // if (typeof e === 'string') continue
@@ -554,7 +563,7 @@ let talkPlugins = [
 ]
 
 
-/* Aggiunta debug per capire i valori
+// Aggiunta debug per capire i valori
 console.log('Debug valori:', {
     chatId: m.chat,
     talkMode: talkMode,
@@ -563,7 +572,7 @@ console.log('Debug valori:', {
     isTalkPlugin: talkPlugins.includes(name)
 })
 // --- MICRO-INTERAZIONI PHISHY ---
-*/
+
 // Controlla se il nome del plugin è nella lista dei plugin permessi
 let isAllowedPlugin = allowedPlugins.includes(name)
 // Controlla se il plugin richiede talk attivato
@@ -576,7 +585,7 @@ if (talkMode === undefined) {
     console.log('talkMode era undefined, impostato a false', m.chat)
 }
 
-console.log('✅ Plugin attivato:', name,)
+console.log('Plugin attivato:', name, 'Permesso:', isAllowedPlugin, 'Talk richiesto:', isTalkPlugin, 'Talk attivo:', talkMode)
 
 // FIX: Prima verifichiamo se il plugin richiede talk e se talk è disattivato
 // Questo controllo deve essere eseguito PRIMA di quello del modoadmin
@@ -591,7 +600,8 @@ if (adminMode && !isOwner && !isROwner && m.isGroup && !isAdmin && !isAllowedPlu
     return
 }
 
-
+// Se passa entrambi i controlli, il plugin è permesso
+console.log('✅ Permesso:', name)
 
 
                 if (plugin.rowner && plugin.owner && !(isROwner || isOwner)) { // Both Owner
@@ -944,7 +954,7 @@ export async function participantsUpdate({ id, participants, action }) {
                             console.warn('⚠️ Impossibile caricare la foto profilo, uso quella di default.');
                         }
                         const apii = await this.getFile(pp);
-                        const nomeDelBot = global.db.data.nomedelbot || `PᏂ𝚒𝑠𝐇ⲩ ᶠᶸᶜᵏᵧₒᵤ!`;
+                        const nomeDelBot = botname || `𝙋𝙝𝙮𝙎𝙝𝙮 ᶠᵘᶜᵏﾠʸᵒᵘ🎌`
                         await this.sendMessage(id, {
                             text: text,
                             contextInfo: {
@@ -957,7 +967,7 @@ export async function participantsUpdate({ id, participants, action }) {
                                     newsletterName: `${nomeDelBot}`
                                 },
                                 externalAdReply: {
-                                    title: isNewUserInGroup ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐛𝐞𝐧𝐯𝐞𝐧𝐭𝐨 🎉' : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐁𝐞𝐧𝐭𝐨𝐫𝐧𝐚𝐭𝐨 👋',
+                                    title: isNewUserInGroup ? '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐁𝐞𝐧𝐯𝐞𝐧𝐮𝐭𝐨 🎉' : '𝐌𝐞𝐬𝐬𝐚𝐠𝐠𝐢𝐨 𝐝𝐢 𝐁𝐞𝐧𝐭𝐨𝐫𝐧𝐚𝐭𝐨 👋',
                                     mediaType: 1,
                                     thumbnail: apii.data,
                                     sourceUrl: ''
@@ -1032,7 +1042,7 @@ export async function participantsUpdate({ id, participants, action }) {
                                     forwardedNewsletterMessageInfo: {
                                         newsletterJid: '120363391446013555@newsletter',
                                         serverMessageId: '',
-                                        newsletterName: 'phishy '
+                                        newsletterName: '𝙋𝙝𝙮𝙎𝙝𝙮 ᶠᵘᶜᵏﾠʸᵒᵘ🎌'
                                     },
                                     externalAdReply: {
                                         title: '𝐀𝐝𝐝𝐢𝐨 👋 ',
@@ -1061,6 +1071,39 @@ export async function participantsUpdate({ id, participants, action }) {
                     }
                 }
                 break;
+            case 'promote':
+                if (chat.sPromote) {
+                    for (let user of participants) {
+                        const normalizedJid = normalizeJid(user);
+                        const mention = '@' + normalizedJid.split('@')[0];
+                        text = chat.sPromote.replace(/@user/g, mention);
+                        console.log('[DEBUG PROMOTE] Testo promozione:', text);
+                        await this.sendMessage(id, {
+                            text: text,
+                            contextInfo: { mentionedJid: [normalizedJid] }
+                        });
+                    }
+                }
+                break;
+            case 'demote':
+                if (chat.sDemote) {
+                    for (let user of participants) {
+                        const normalizedJid = normalizeJid(user);
+                        const mention = '@' + normalizedJid.split('@')[0];
+                        text = chat.sDemote.replace(/@user/g, mention);
+                        console.log('[DEBUG DEMOTE] Testo declassamento:', text);
+                        await this.sendMessage(id, {
+                            text: text,
+                            contextInfo: { mentionedJid: [normalizedJid] }
+                        });
+                    }
+                }
+                break;
+
+            default:
+                console.warn('[DEBUG PARTICIPANTS UPDATE] Azione sconosciuta:', action);
+                return;
+            
         }
     } catch (e) {
         console.error('[participantsUpdate] Errore:', e);
@@ -1073,7 +1116,7 @@ export async function callUpdate(callUpdate) {
     for (let nk of callUpdate) {
     if (nk.isGroup == false) {
     if (nk.status == "offer") {
-    let callmsg = await this.reply(nk.from, `ciao @${nk.from.split('@')[0]}, c'è anticall.`, false, { mentions: [nk.from] })
+    let callmsg = await this.reply(nk.from, `ciao @${nk.from.split('@')[0]}, non mi chiamare, se hai bisogno di qualcosa scrivi al proprietario.`, false, { mentions: [nk.from] })
     //let data = global.owner.filter(([id, isCreator]) => id && isCreator)
     let vcard = `BEGIN:VCARD\nVERSION:3.0\nN:;easter;;;\nFN:easter\nORG:easter\nTITLE:\nitem1.TEL;waid=1112224444:+39 111 222 4444\nitem1.X-ABLabel:easter\nX-WA-BIZ-DESCRIPTION:ofc\nX-WA-BIZ-NAME:easter\nEND:VCARD`
     await this.sendMessage(nk.from, { contacts: { displayName: 'Unlimited', contacts: [{ vcard }] }}, {quoted: callmsg})
@@ -1085,7 +1128,13 @@ export async function callUpdate(callUpdate) {
 
 export async function deleteUpdate(message) {
     try {
-        const { fromMe, id, participant } = message;
+        const { fromMe, id, participant, type } = message;
+
+        // Attiva solo se il tipo è 'delete' (non 'revoked', 'edit', ecc.)
+        if (type && type !== 'delete') {
+            // Ignora se non è una cancellazione vera
+            return;
+        }
 
         // REINSERITO: Impedisce la notifica se è il bot a cancellare
         if (participant === this.user.jid) {

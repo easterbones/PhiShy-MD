@@ -75,5 +75,6 @@ handler.command = ['bagno']
 handler.tags = ['animali']
 handler.help = ['bagno <animale> - Fa il bagnetto al tuo animale domestico']
 handler.register = true
+handler.mods = true;
 
 export default handler

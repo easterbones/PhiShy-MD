@@ -7,6 +7,20 @@ import fetch from 'node-fetch'
 import axios from 'axios'
 import moment from 'moment-timezone' 
 
+// Funzione globale per normalizzare i JID (WhatsApp IDs)
+global.normalizeJid = function(jid) {
+    if (!jid) return null
+    // Se già contiene @ e non è in formato gruppo
+    if (typeof jid === 'string' && jid.includes('@') && !jid.includes('@g.us')) {
+        // Assicurati che abbia il formato corretto (user@s.whatsapp.net)
+        return jid.replace(/^(.+)@.+@.+$/, '$1@s.whatsapp.net')
+    }
+    // Se è un numero, aggiungi il suffisso
+    if (typeof jid === 'string' && !jid.includes('@')) {
+        return jid.replace(/[^0-9]/g, '') + '@s.whatsapp.net'
+    }
+    return jid
+}
 
 
 global.botnumber = ""
@@ -21,19 +35,6 @@ global.owner = [
 
 //────────────────────────────
 
-global.mods = [
-]
-  
-   
-    
- 
-
-  
-
-
-
-
-//────────────────────────────
 global.prems = ['']
  
 
@@ -49,7 +50,7 @@ global.canal = 'https://www.tiktok.com/tpp/age-gate?_t=ZN-8sGYtLDBXKY&_r=1'
 global.packname = ``
 global.author = '{\n "bot": {\n   "name": "PᏂ𝚒𝑠𝐡ⲩ ᶠᶸᶜᵏᵧₒᵤ!",\n     "author": "easter",\n   "status_bot": "active"\n }\n}'
 global.wait = '🐢 *PᏂ𝚒𝑠𝐡ⲩ ᶠᶸᶜᵏᵧₒᵤ!*'
-global.botname = 'PᏂ𝚒𝑠𝐡ⲩ ᶠᶸᶜᵏᵧₒᵤ!'
+global.botname = `𝙋𝙝𝙮𝙎𝙝𝙮 ᶠᵘᶜᵏﾠʸᵒᵘ🎌`
 global.textbot = `buongiorno`
 global.listo = '*🍭 Aqui tiene*'
 global.namechannel = '【 PᏂ𝚒𝑠𝐡ⲩ ᶠᶸᶜᵏᵧₒᵤ! 】'

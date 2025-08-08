@@ -5,6 +5,12 @@ const handler = async (m) => {
   // Nome dell'utente (se disponibile, altrimenti il numero)
   const senderName = m.pushName || m.sender || "Anonimo";
 
+  // Controlla se il messaggio menziona, tagga o risponde al bot
+  const isMentioningBot = m.mentionedJid?.includes(conn.user.jid);
+  const isReplyingToBot = m.quoted?.sender === conn.user.jid;
+
+  if (!isMentioningBot && !isReplyingToBot) return; // Ignora se non è diretto al bot
+
   // Array di 50 risposte casuali (ironiche e sincere)
   const responses = [
     `Prego, ${senderName}! Sempre qui per aiutarti! 😊`,
